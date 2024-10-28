@@ -14,7 +14,7 @@ NEWSPIDER_MODULE = "punktoza.spiders"
 
 #playwright
 
-PLAYWRIGHT_LAUNCH_OPTIONS = {"headless" : False}
+PLAYWRIGHT_LAUNCH_OPTIONS = {"headless" : True}
 
 DOWNLOAD_HANDLERS = {
     "http": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
