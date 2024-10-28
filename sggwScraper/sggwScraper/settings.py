@@ -12,6 +12,14 @@ BOT_NAME = "sggwScraper"
 SPIDER_MODULES = ["sggwScraper.spiders"]
 NEWSPIDER_MODULE = "sggwScraper.spiders"
 
+#Playwright settings
+DOWNLOAD_HANDLERS = {
+    "http": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
+    "https": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
+}
+
+TWISTED_REACTOR = "twisted.internet.asyncioreactor.AsyncioSelectorReactor"
+
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = "sggwScraper (+http://www.yourdomain.com)"
