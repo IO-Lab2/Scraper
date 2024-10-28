@@ -6,7 +6,10 @@
 import scrapy
 
 
-class SggwscraperItem(scrapy.Item):
-    # define the fields for your item here like:
-    # name = scrapy.Field()
-    pass
+class scientist(scrapy.Item):
+    first_name = scrapy.Field()
+    last_name = scrapy.Field()
+    academic_title = scrapy.Field()
+    research_area = scrapy.Field()
+    email = scrapy.Field()
+    profile_url = scrapy.Field()
