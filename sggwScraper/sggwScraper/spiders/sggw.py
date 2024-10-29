@@ -1,3 +1,4 @@
+from operator import ne
 import scrapy
 from scrapy_playwright.page import PageMethod
 
@@ -47,13 +48,13 @@ class SggwSpider(scrapy.Spider):
                 playwright=True,
                 playwright_include_page=True,
                 playwright_page_methods =[
-                    PageMethod('wait_for_selector', 'div#authorProfileBasicInfoPanel')
+                    PageMethod('wait_for_selector', 'div#infoPageContainer')
                     ],
                 errback=self.errback
             ))
         #need fix
-        next_page_btn=response.css('ul#entitiesT_paginator_bottom a.ui-paginator-next')
-        if next_page_btn:
+        next_page_btn_hidden=response.css('ul#entitiesT_paginator_bottom>li:nth-child(4)::attr(aria-hidden)').get()
+        if next_page_btn_hidden!='true':
             yield response.follow(response.url, callback=self.parse_scientist_links,
                 meta=dict(
                     playwright=True,
@@ -84,6 +85,10 @@ class SggwSpider(scrapy.Spider):
         scientist['research_area']= research_area.css('ul.ul-element-wcag li span::text').getall()
         scientist['email']= personal_data.css('p.authorContactInfoEmailContainer>a::text').get()
         scientist['profile_url']= response.url
+        scientist['h_index']=response.css('div.bibliometricsPanel>ul.ul-element-wcag>li:nth-child(1)>a::text').get()
+        scientist['publication_count']=response.css('div.achievementsTable ul.ul-element-wcag>li:nth-child(1)>div.achievmentResultListLink>a::text').get()
+        #need fix
+        #scientist['ministerial_score']=response.css('div.bibliometricsPanel>ul.ul-element-wcag>li:nth-child(6)>div::text').get()
         
         yield scientist
         
