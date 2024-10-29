@@ -6,7 +6,7 @@
 import scrapy
 
 
-class scientist(scrapy.Item):
+class ScientistItem(scrapy.Item):
     first_name = scrapy.Field()
     last_name = scrapy.Field()
     academic_title = scrapy.Field()
