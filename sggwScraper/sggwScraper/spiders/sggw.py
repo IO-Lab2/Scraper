@@ -4,24 +4,11 @@ from scrapy_playwright.page import PageMethod
 class SggwSpider(scrapy.Spider):
     name = "sggw"
 
-    #allowed_domains = ["bw.sggw.edu.pl"]
-    #start_urls = ["https://bw.sggw.edu.pl"]
-    def start_requests(self):
-        url='https://bw.sggw.edu.pl'
-        yield scrapy.Request(url,
-        meta=dict(
-            playwright=True,
-            playwright_include_page=True,
-            playwright_page_methods =[
-                PageMethod('wait_for_selector', 'div.startPage'),
-                PageMethod('wait_for_timeout', 10000)
-                ],
-            errback=self.errback
-        ))
+    allowed_domains = ["bw.sggw.edu.pl"]
+    start_urls = ["https://bw.sggw.edu.pl"]
+   
 
-    async def parse(self, response):
-        page = response.meta['playwright_page']
-        await page.close()
+    def parse(self, response):
         disciplines=response.css('a.omega-discipline::text').getall()
 
         for disc in disciplines:
@@ -46,7 +33,9 @@ class SggwSpider(scrapy.Spider):
         ))
         
 
-    def parse_authors_links(self, response):
+    async def parse_authors_links(self, response):
+        page = response.meta['playwright_page']
+        await page.close()
         authors_links=response.css('a.authorNameLink::attr(href)').getall()
         bw_url='https://bw.sggw.edu.pl'
 
