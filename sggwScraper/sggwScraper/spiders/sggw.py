@@ -1,7 +1,7 @@
 import scrapy
 from scrapy_playwright.page import PageMethod
 
-from sggwScraper.items import ScientistItem
+from sggwScraper.items import ScientistItem, organizationItem
 
 class SggwSpider(scrapy.Spider):
     name = "sggw"
@@ -70,11 +70,14 @@ class SggwSpider(scrapy.Spider):
                     errback=self.errback
                 ))
             
-        #filters section need fix
-        domains_disciplines=response.css('div#domaintreemain>div#domaintree_groupingPanel>ul.ui-tree-container li').getall()
+        #filters section
+        domains_disciplines=response.css('div#afftreemain>div#groupingPanel>ul.ui-tree-container>li>ul.ui-treenode-children>li')
+        
         for domain in domains_disciplines:
+            organization=organizationItem()
             d_name=domain.css('div.ui-treenode-content div.ui-treenode-label span>span::text').get()
-            yield {'domain': d_name}
+            organization['name']=d_name
+            yield organization
         
         
 
@@ -103,7 +106,24 @@ class SggwSpider(scrapy.Spider):
         #scientist['ministerial_score']=response.css('div.bibliometricsPanel>ul.ul-element-wcag>li:nth-child(6)>div::text').get()
         
         yield scientist
+        bw_url='https://bw.sggw.edu.pl'
+        publications_url=bw_url+response.css('div#authorTabsPanel>a::attr(href)').getall()[1]
+        yield response.follow(publications_url, callback=self.parse_publication_links,
+        meta=dict(
+            playwright=True,
+            playwright_include_page=True,
+            playwright_page_methods =[
+                PageMethod('wait_for_selector', 'div.tabContentPanel')
+                ],
+            errback=self.errback
+        ))
+
         
+    async def parse_publication_links(self, response):
+        page = response.meta['playwright_page']
+        await page.close()
+        #need fix
+        #publications_links=response.css('h5.entity-row-title>a.infoLink::attr(href)').getall()
 
 
     

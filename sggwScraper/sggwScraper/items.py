@@ -28,3 +28,6 @@ class publicationItem(scrapy.Item):
     citations_count = scrapy.Field()
     impact_factor = scrapy.Field()
     scientist_id = scrapy.Field()
+
+class organizationItem(scrapy.Item):
+    name = scrapy.Field()
