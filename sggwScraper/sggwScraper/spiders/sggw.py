@@ -1,4 +1,3 @@
-from operator import ne
 import scrapy
 from scrapy_playwright.page import PageMethod
 
@@ -24,13 +23,14 @@ class SggwSpider(scrapy.Spider):
         categories_links=response.css('a.global-stats-link::attr(href)').getall()
         categories_names=response.css('span.global-stats-description::text').getall()
         categories={name: bw_url+link for name, link in zip(categories_names, categories_links)}
-        
+
+        #redirect to People category
         yield response.follow(categories['People'], callback=self.parse_scientist_links,
         meta=dict(
             playwright=True,
             playwright_include_page=True,
             playwright_page_methods =[
-                PageMethod('wait_for_selector', 'div#entitiesT_content')
+                PageMethod('wait_for_selector', 'div#searchResultsMainPanel')
                 ],
             errback=self.errback
         ))
@@ -39,9 +39,11 @@ class SggwSpider(scrapy.Spider):
     async def parse_scientist_links(self, response):
         page = response.meta['playwright_page']
         await page.close()
+        #get scientist links from the page
         authors_links=response.css('a.authorNameLink::attr(href)').getall()
         bw_url='https://bw.sggw.edu.pl'
 
+        #redirect to every scientist profile
         for author in authors_links:
             yield response.follow(bw_url+author, callback=self.parse_scientist,
                 meta=dict(
@@ -52,7 +54,7 @@ class SggwSpider(scrapy.Spider):
                     ],
                 errback=self.errback
             ))
-        #need fix
+        #next page button clicker need fix
         next_page_btn_hidden=response.css('ul#entitiesT_paginator_bottom>li:nth-child(4)::attr(aria-hidden)').get()
         if next_page_btn_hidden!='true':
             yield response.follow(response.url, callback=self.parse_scientist_links,
@@ -67,10 +69,20 @@ class SggwSpider(scrapy.Spider):
                     ],
                     errback=self.errback
                 ))
+            
+        #filters section need fix
+        domains_disciplines=response.css('div#domaintreemain>div#domaintree_groupingPanel>ul.ui-tree-container li').getall()
+        for domain in domains_disciplines:
+            d_name=domain.css('div.ui-treenode-content div.ui-treenode-label span>span::text').get()
+            yield {'domain': d_name}
+        
         
 
 
     async def parse_scientist(self, response):
+        '''
+            Scrapes scientist profile page
+        '''
         page = response.meta['playwright_page']
         await page.close()
         personal_data=response.css('div.authorProfileBasicInfoPanel')
