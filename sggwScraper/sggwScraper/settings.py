@@ -13,6 +13,7 @@ SPIDER_MODULES = ["sggwScraper.spiders"]
 NEWSPIDER_MODULE = "sggwScraper.spiders"
 
 #Playwright settings
+PLAYWRIGHT_LAUNCH_OPTIONS={"headless": True}
 DOWNLOAD_HANDLERS = {
     "http": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
     "https": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",

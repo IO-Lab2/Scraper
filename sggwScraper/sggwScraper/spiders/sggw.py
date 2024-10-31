@@ -8,6 +8,8 @@ class SggwSpider(scrapy.Spider):
 
     allowed_domains = ["bw.sggw.edu.pl"]
     start_urls = ["https://bw.sggw.edu.pl"]
+
+    
    
 
     def parse(self, response):
@@ -38,37 +40,35 @@ class SggwSpider(scrapy.Spider):
 
     async def parse_scientist_links(self, response):
         page = response.meta['playwright_page']
-        await page.close()
-        #get scientist links from the page
-        authors_links=response.css('a.authorNameLink::attr(href)').getall()
+       
         bw_url='https://bw.sggw.edu.pl'
-
-        #redirect to every scientist profile
-        for author in authors_links:
-            yield response.follow(bw_url+author, callback=self.parse_scientist,
-                meta=dict(
-                playwright=True,
-                playwright_include_page=True,
-                playwright_page_methods =[
-                    PageMethod('wait_for_selector', 'div#infoPageContainer')
-                    ],
-                errback=self.errback
-            ))
-        #next page button clicker need fix
-        next_page_btn_hidden=response.css('ul#entitiesT_paginator_bottom>li:nth-child(4)::attr(aria-hidden)').get()
-        if next_page_btn_hidden!='true':
-            yield response.follow(response.url, callback=self.parse_scientist_links,
-                meta=dict(
+        total_pages=int(response.css('span.entitiesDataListTotalPages::text').get())
+        #get scientist links from the page
+        for i in range(3):
+            authors_links=response.css('a.authorNameLink::attr(href)').getall()
+            #redirect to every scientist profile
+            for author in authors_links:
+                yield response.follow(bw_url+author, callback=self.parse_scientist,
+                    meta=dict(
                     playwright=True,
                     playwright_include_page=True,
-                    playwright_page_methods=[
-                        PageMethod('wait_for_selector', 'ul#entitiesT_paginator_bottom'),
-                        #PageMethod('hover', 'a.ui-paginator-next'),
-                        PageMethod('click', 'ul#entitiesT_paginator_bottom a.ui-paginator-next'),
-                        PageMethod('wait_for_selector', 'div#entitiesT_content')
-                    ],
+                    playwright_page_methods =[
+                        PageMethod('wait_for_selector', 'div#infoPageContainer')
+                        ],
                     errback=self.errback
                 ))
+            #next page button clicker
+            next_button_selector = ".ui-paginator-next.ui-state-default.ui-corner-all"
+            next_page_btn_hidden=response.css('ul#entitiesT_paginator_bottom>li:nth-child(4)::attr(aria-hidden)').get()
+            if next_page_btn_hidden!='true':
+                await page.wait_for_selector(next_button_selector, state="visible")
+                await page.click(next_button_selector)
+                content = await page.content()
+                response = response.replace(body=content)
+                
+        await page.close()
+
+        
             
         #filters section
         domains_disciplines=response.css('div#afftreemain>div#groupingPanel>ul.ui-tree-container>li>ul.ui-treenode-children>li')
@@ -104,19 +104,8 @@ class SggwSpider(scrapy.Spider):
         scientist['publication_count']=response.css('div.achievementsTable ul.ul-element-wcag>li:nth-child(1)>div.achievmentResultListLink>a::text').get()
         #need fix
         #scientist['ministerial_score']=response.css('div.bibliometricsPanel>ul.ul-element-wcag>li:nth-child(6)>div::text').get()
-        
         yield scientist
-        bw_url='https://bw.sggw.edu.pl'
-        publications_url=bw_url+response.css('div#authorTabsPanel>a::attr(href)').getall()[1]
-        yield response.follow(publications_url, callback=self.parse_publication_links,
-        meta=dict(
-            playwright=True,
-            playwright_include_page=True,
-            playwright_page_methods =[
-                PageMethod('wait_for_selector', 'div.tabContentPanel')
-                ],
-            errback=self.errback
-        ))
+        
 
         
     async def parse_publication_links(self, response):
