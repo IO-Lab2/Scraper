@@ -36,6 +36,17 @@ class SggwSpider(scrapy.Spider):
                 ],
             errback=self.errback
         ))
+
+        #redirect to Publications category
+        yield response.follow(categories['Publications'], callback=self.parse_publications_links,
+        meta=dict(
+            playwright=True,
+            playwright_include_page=True,
+            playwright_page_methods =[
+                PageMethod('wait_for_selector', 'div#searchResultsMainPanel')
+                ],
+            errback=self.errback
+        ))
         
 
     async def parse_scientist_links(self, response):
@@ -108,13 +119,49 @@ class SggwSpider(scrapy.Spider):
         
 
         
-    async def parse_publication_links(self, response):
+    async def parse_publications_links(self, response):
         page = response.meta['playwright_page']
         await page.close()
-        #need fix
-        #publications_links=response.css('h5.entity-row-title>a.infoLink::attr(href)').getall()
 
+        page = response.meta['playwright_page']
+        bw_url='https://bw.sggw.edu.pl'
 
+        publications_urls=response.css('div.entity-row-heading-wrapper>h5>a::attr(href)').getall()
+        for pub in publications_urls:
+            yield response.follow(bw_url+pub, callback=self.parse_publication,
+                meta=dict(
+                playwright=True,
+                playwright_include_page=True,
+                playwright_page_methods =[
+                    PageMethod('wait_for_selector', 'div#infoPageContainer')
+                    ],
+                errback=self.errback
+            ))
+
+    async def parse_publication(self, response):
+        page = response.meta['playwright_page']
+        await page.close()
+
+        
+
+        authors_selector = response.css('div.authorList div.authorListElement a')
+        authors=[]
+
+        for author in authors_selector:
+            authors.append(author.css('span.authorSimple>span::text').getall())
+
+        info_table=response.css('dl.table2ColsContainer')
+        all_labels=info_table.css('dt>span::text').getall()
+        all_values=info_table.css('dd::text').getall()
+        
+        yield {
+            'title':response.css('div.publicationShortInfo>h2::text').get(),
+            'journal':response.xpath('//*[@id="j_id_3_1q_1_1_1a_5_3_1_1:0:j_id_3_1q_1_1_1a_5_3_1_5_1"]/text()').get(),
+            #need to fix
+            #'publication_date':info_table.css('dd:nth-child(4)::text').get(),
+            #'citation_count':response.xpath('//*[@id="j_id_3_1q_1_1_3i_5_3_1_1:0:j_id_3_1q_1_1_3i_5_3_1_5_1"]/text()').get(),
+            'authors':authors
+            }
     
         
     async def errback(self, failure):
