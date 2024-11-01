@@ -27,7 +27,7 @@ class publicationItem(scrapy.Item):
     publication_date = scrapy.Field()
     citations_count = scrapy.Field()
     impact_factor = scrapy.Field()
-    scientist_id = scrapy.Field()
+    authors = scrapy.Field()
 
 class organizationItem(scrapy.Item):
     name = scrapy.Field()

@@ -1,7 +1,7 @@
 import scrapy
 from scrapy_playwright.page import PageMethod
 
-from sggwScraper.items import ScientistItem, organizationItem
+from sggwScraper.items import ScientistItem, organizationItem, publicationItem
 
 class SggwSpider(scrapy.Spider):
     name = "sggw"
@@ -55,7 +55,7 @@ class SggwSpider(scrapy.Spider):
         bw_url='https://bw.sggw.edu.pl'
         total_pages=int(response.css('span.entitiesDataListTotalPages::text').get())
         #get scientist links from the page
-        for i in range(3):
+        for i in range(1):
             authors_links=response.css('a.authorNameLink::attr(href)').getall()
             #redirect to every scientist profile
             for author in authors_links:
@@ -121,22 +121,33 @@ class SggwSpider(scrapy.Spider):
         
     async def parse_publications_links(self, response):
         page = response.meta['playwright_page']
+        
+
+        bw_url='https://bw.sggw.edu.pl'
+        total_pages=int(response.css('span.entitiesDataListTotalPages::text').get().replace(',',''))
+
+        for i in range(1):
+            publications_urls=response.css('div.entity-row-heading-wrapper>h5>a::attr(href)').getall()
+            for pub in publications_urls:
+                yield response.follow(bw_url+pub, callback=self.parse_publication,
+                    meta=dict(
+                    playwright=True,
+                    playwright_include_page=True,
+                    playwright_page_methods =[
+                        PageMethod('wait_for_selector', 'div#infoPageContainer')
+                        ],
+                    errback=self.errback
+                ))
+            #next page button clicker
+            next_button_selector = ".ui-paginator-next.ui-state-default.ui-corner-all"
+            next_page_btn_hidden=response.css('ul#entitiesT_paginator_bottom>li:nth-child(4)::attr(aria-hidden)').get()
+            if next_page_btn_hidden!='true':
+                await page.wait_for_selector(next_button_selector, state="visible")
+                await page.click(next_button_selector)
+                content = await page.content()
+                response = response.replace(body=content)
         await page.close()
 
-        page = response.meta['playwright_page']
-        bw_url='https://bw.sggw.edu.pl'
-
-        publications_urls=response.css('div.entity-row-heading-wrapper>h5>a::attr(href)').getall()
-        for pub in publications_urls:
-            yield response.follow(bw_url+pub, callback=self.parse_publication,
-                meta=dict(
-                playwright=True,
-                playwright_include_page=True,
-                playwright_page_methods =[
-                    PageMethod('wait_for_selector', 'div#infoPageContainer')
-                    ],
-                errback=self.errback
-            ))
 
     async def parse_publication(self, response):
         page = response.meta['playwright_page']
@@ -150,18 +161,16 @@ class SggwSpider(scrapy.Spider):
         for author in authors_selector:
             authors.append(author.css('span.authorSimple>span::text').getall())
 
-        info_table=response.css('dl.table2ColsContainer')
-        all_labels=info_table.css('dt>span::text').getall()
-        all_values=info_table.css('dd::text').getall()
-        
-        yield {
-            'title':response.css('div.publicationShortInfo>h2::text').get(),
-            'journal':response.xpath('//*[@id="j_id_3_1q_1_1_1a_5_3_1_1:0:j_id_3_1q_1_1_1a_5_3_1_5_1"]/text()').get(),
-            #need to fix
-            #'publication_date':info_table.css('dd:nth-child(4)::text').get(),
-            #'citation_count':response.xpath('//*[@id="j_id_3_1q_1_1_3i_5_3_1_1:0:j_id_3_1q_1_1_3i_5_3_1_5_1"]/text()').get(),
-            'authors':authors
-            }
+        publication=publicationItem()
+
+        publication['title']=response.css('div.publicationShortInfo>h2::text').get()
+        publication['journal']=response.xpath('//*[@id="j_id_3_1q_1_1_1a_5_3_1_1:0:j_id_3_1q_1_1_1a_5_3_1_5_1"]/text()').get()
+        publication['publication_date']= response.xpath('//dl[contains(@class, "table2ColsContainer")]//dt[span[contains(text(), "Issue year")]]/following-sibling::dd[1]//text()').get()
+        publication['citations_count']=response.xpath('//dt[span/text()="Publication indicators"]/following-sibling::dd[1]/ul/li[1]/a/text()').re_first(r'=\s*(\d+)')
+        publication['authors']=authors
+
+        yield publication
+            
     
         
     async def errback(self, failure):
