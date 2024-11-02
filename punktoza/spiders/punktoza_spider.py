@@ -1,5 +1,6 @@
 import scrapy
 from scrapy_playwright.page import PageMethod
+from ..items import JournalItem
 
 class PunktozaSpiderSpider(scrapy.Spider):
     name = "punktoza_spider"
@@ -24,8 +25,9 @@ class PunktozaSpiderSpider(scrapy.Spider):
         # Yields scraped data       
         page = response.meta['playwright_page']
         page_counter = int(response.css("ul.pagination li.paginate_button.page-item a[data-dt-idx='7']::text").get())
+        journals = JournalItem()
 
-        for i in range(page_counter):
+        for i in range(2):
             # Check if table's page is filled with articles
             section_name = response.css("tr.dtrg-group.dtrg-start.dtrg-level-0 th::text").get()
             if section_name != 'Czasopismo': 
@@ -34,16 +36,14 @@ class PunktozaSpiderSpider(scrapy.Spider):
             # Loop over rows in data table
             table_rows = response.css("table#DataTables_Table_0 tbody tr.even, table#DataTables_Table_0 tbody tr.odd")
             for row in table_rows:
-                publication = row.css('td.dt-head-center.dt-head-nowrap.dtr-control a::text').get()
+                journal_name = row.css('td.dt-head-center.dt-head-nowrap.dtr-control a::text').get()
                 if_points = row.css("td.dt-right.dt-head-center.dt-head-nowrap::text").get() + row.css('td.dt-right.dt-head-center.dt-head-nowrap span::text').get()
 
                 # Store and yield scraped data
-                info_dict = {
-                    'Publication_name': publication,
-                    'IF_points': if_points
-                }
+                journals["name"] = journal_name
+                journals["if_points"] = if_points
 
-                yield info_dict
+                yield journals
             # Click pagination's next page button
             await page.click("li.paginate_button.page-item.next a[data-dt-idx='8']")
 

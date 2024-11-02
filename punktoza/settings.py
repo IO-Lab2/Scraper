@@ -14,7 +14,7 @@ NEWSPIDER_MODULE = "punktoza.spiders"
 
 #playwright
 
-PLAYWRIGHT_LAUNCH_OPTIONS = {"headless" : False}
+PLAYWRIGHT_LAUNCH_OPTIONS = {"headless" : True}
 
 DOWNLOAD_HANDLERS = {
     "http": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
@@ -72,9 +72,9 @@ ROBOTSTXT_OBEY = False
 
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
-#ITEM_PIPELINES = {
-#    "punktoza.pipelines.PunktozaPipeline": 300,
-#}
+ITEM_PIPELINES = {
+    "punktoza.pipelines.PunktozaPipeline": 300,
+}
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/autothrottle.html
