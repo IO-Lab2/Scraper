@@ -32,7 +32,8 @@ class SggwSpider(scrapy.Spider):
             playwright=True,
             playwright_include_page=True,
             playwright_page_methods =[
-                PageMethod('wait_for_selector', 'div#searchResultsMainPanel')
+                PageMethod('wait_for_selector', 'div#entitiesT_content ul.ui-dataview-list-container'),
+                PageMethod('wait_for_selector', 'div#searchResultsFiltersInnerPanel' )
                 ],
             errback=self.errback
         ))
@@ -43,7 +44,7 @@ class SggwSpider(scrapy.Spider):
             playwright=True,
             playwright_include_page=True,
             playwright_page_methods =[
-                PageMethod('wait_for_selector', 'div#searchResultsMainPanel')
+                PageMethod('wait_for_selector', 'ul.ui-dataview-list-container li.ui-dataview-row')
                 ],
             errback=self.errback
         ))
@@ -53,9 +54,10 @@ class SggwSpider(scrapy.Spider):
         page = response.meta['playwright_page']
        
         bw_url='https://bw.sggw.edu.pl'
-        total_pages=int(response.css('span.entitiesDataListTotalPages::text').get())
+        total_pages=2#int(response.css('span.entitiesDataListTotalPages::text').get())
         #get scientist links from the page
-        for i in range(1):
+        current_page=1
+        while current_page<=total_pages:
             authors_links=response.css('a.authorNameLink::attr(href)').getall()
             #redirect to every scientist profile
             for author in authors_links:
@@ -64,21 +66,24 @@ class SggwSpider(scrapy.Spider):
                     playwright=True,
                     playwright_include_page=True,
                     playwright_page_methods =[
-                        PageMethod('wait_for_selector', 'div#infoPageContainer')
+                        PageMethod('wait_for_selector', 'div#authorProfileBasicInfoPanel'),
+                        PageMethod('wait_for_selector', 'div#authorProfileGridContainer'),
+                        PageMethod('wait_for_selector', 'div.otherInfoContainer' )
                         ],
                     errback=self.errback
                 ))
             #next page button clicker
-            next_button_selector = ".ui-paginator-next.ui-state-default.ui-corner-all"
-            next_page_btn_hidden=response.css('ul#entitiesT_paginator_bottom>li:nth-child(4)::attr(aria-hidden)').get()
-            if next_page_btn_hidden!='true':
+            if current_page<total_pages:
+                next_button_selector = ".ui-paginator-next.ui-state-default.ui-corner-all"
                 await page.wait_for_selector(next_button_selector, state="visible")
                 await page.click(next_button_selector)
+                await page.wait_for_selector('div#entitiesT_content ul.ui-dataview-list-container')
                 content = await page.content()
                 response = response.replace(body=content)
+                current_page+=1
+            else:
+                break
                 
-        await page.close()
-
         
             
         #filters section
@@ -89,6 +94,8 @@ class SggwSpider(scrapy.Spider):
             d_name=domain.css('div.ui-treenode-content div.ui-treenode-label span>span::text').get()
             organization['name']=d_name
             yield organization
+
+        await page.close()
         
         
 
@@ -98,7 +105,7 @@ class SggwSpider(scrapy.Spider):
             Scrapes scientist profile page
         '''
         page = response.meta['playwright_page']
-        await page.close()
+        
         personal_data=response.css('div.authorProfileBasicInfoPanel')
         name_title=personal_data.css('span.authorName::text').getall()
         research_area=response.css('div.researchFieldsPanel')
@@ -116,44 +123,48 @@ class SggwSpider(scrapy.Spider):
         #need fix
         #scientist['ministerial_score']=response.css('div.bibliometricsPanel>ul.ul-element-wcag>li:nth-child(6)>div::text').get()
         yield scientist
+        await page.close()
         
 
         
     async def parse_publications_links(self, response):
         page = response.meta['playwright_page']
         
-
         bw_url='https://bw.sggw.edu.pl'
-        total_pages=int(response.css('span.entitiesDataListTotalPages::text').get().replace(',',''))
+        total_pages=10#int(response.css('span.entitiesDataListTotalPages::text').get().replace(',',''))
 
-        for i in range(1):
+        current_page=1
+        while current_page<=total_pages:
             publications_urls=response.css('div.entity-row-heading-wrapper>h5>a::attr(href)').getall()
+
             for pub in publications_urls:
                 yield response.follow(bw_url+pub, callback=self.parse_publication,
                     meta=dict(
                     playwright=True,
                     playwright_include_page=True,
                     playwright_page_methods =[
-                        PageMethod('wait_for_selector', 'div#infoPageContainer')
+                        PageMethod('wait_for_selector', 'div.publicationShortInfo'),
+                        PageMethod('wait_for_selector', 'dl.table2ColsContainer dt' )
                         ],
                     errback=self.errback
                 ))
+            
             #next page button clicker
-            next_button_selector = ".ui-paginator-next.ui-state-default.ui-corner-all"
-            next_page_btn_hidden=response.css('ul#entitiesT_paginator_bottom>li:nth-child(4)::attr(aria-hidden)').get()
-            if next_page_btn_hidden!='true':
+            if current_page<total_pages:
+                next_button_selector = ".ui-paginator-next.ui-state-default.ui-corner-all"
                 await page.wait_for_selector(next_button_selector, state="visible")
                 await page.click(next_button_selector)
+                await page.wait_for_selector('ul.ui-dataview-list-container li.ui-dataview-row')
                 content = await page.content()
                 response = response.replace(body=content)
+                current_page+=1
+            else:
+                break
         await page.close()
 
 
     async def parse_publication(self, response):
         page = response.meta['playwright_page']
-        await page.close()
-
-        
 
         authors_selector = response.css('div.authorList div.authorListElement a')
         authors=[]
@@ -170,6 +181,7 @@ class SggwSpider(scrapy.Spider):
         publication['authors']=authors
 
         yield publication
+        await page.close()
             
     
         
