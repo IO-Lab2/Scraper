@@ -5,9 +5,14 @@
 
 
 # useful for handling different item types with a single interface
+from attrs import field
 from itemadapter import ItemAdapter
 
 
 class SggwscraperPipeline:
     def process_item(self, item, spider):
+
+        adapter=ItemAdapter(item)
+        
+            
         return item

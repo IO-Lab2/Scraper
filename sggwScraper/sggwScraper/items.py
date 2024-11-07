@@ -30,4 +30,6 @@ class publicationItem(scrapy.Item):
     authors = scrapy.Field()
 
 class organizationItem(scrapy.Item):
-    name = scrapy.Field()
+    university = scrapy.Field()
+    institute= scrapy.Field()
+    cathedras = scrapy.Field()

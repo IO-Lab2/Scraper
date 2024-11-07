@@ -33,7 +33,22 @@ class SggwSpider(scrapy.Spider):
             playwright_include_page=True,
             playwright_page_methods =[
                 PageMethod('wait_for_selector', 'div#entitiesT_content ul.ui-dataview-list-container'),
-                PageMethod('wait_for_selector', 'div#searchResultsFiltersInnerPanel' )
+                PageMethod('wait_for_selector', 'div#searchResultsFiltersInnerPanel' ),
+                PageMethod('wait_for_selector', 'div#afftreemain>div#groupingPanel>ul.ui-tree-container'),
+                PageMethod("evaluate", """
+                            async () => {
+                                const expandAllNodes = async () => {
+                                    const buttons = Array.from(document.querySelectorAll('.ui-tree-toggler'));
+                                    for (const button of buttons) {
+                                        if (button.getAttribute('aria-expanded') === 'false') {
+                                            await button.click();
+                                            await new Promise(r => setTimeout(r, 150));  // odczekanie po kliknięciu
+                                        }
+                                    }
+                                };
+                                await expandAllNodes();
+                            }
+                        """)
                 ],
             errback=self.errback
         ))
@@ -54,7 +69,7 @@ class SggwSpider(scrapy.Spider):
         page = response.meta['playwright_page']
        
         bw_url='https://bw.sggw.edu.pl'
-        total_pages=2#int(response.css('span.entitiesDataListTotalPages::text').get())
+        total_pages=0#int(response.css('span.entitiesDataListTotalPages::text').get())
         #get scientist links from the page
         current_page=1
         while current_page<=total_pages:
@@ -88,11 +103,17 @@ class SggwSpider(scrapy.Spider):
             
         #filters section
         domains_disciplines=response.css('div#afftreemain>div#groupingPanel>ul.ui-tree-container>li>ul.ui-treenode-children>li')
-        
+        university=response.css('div#afftreemain>div#groupingPanel>ul.ui-tree-container>li>div.ui-treenode-content div.ui-treenode-label>span>span::text').get()
         for domain in domains_disciplines:
             organization=organizationItem()
-            d_name=domain.css('div.ui-treenode-content div.ui-treenode-label span>span::text').get()
-            organization['name']=d_name
+            organization['university']=university
+
+            institute=domain.css('div.ui-treenode-content div.ui-treenode-label span>span::text').get()
+            organization['institute']=institute
+
+            cathedras = domain.css('ul.ui-treenode-children li.ui-treenode-leaf div.ui-treenode-content div.ui-treenode-label span>span::text').getall()
+            organization['cathedras']=cathedras
+            
             yield organization
 
         await page.close()
@@ -131,7 +152,7 @@ class SggwSpider(scrapy.Spider):
         page = response.meta['playwright_page']
         
         bw_url='https://bw.sggw.edu.pl'
-        total_pages=10#int(response.css('span.entitiesDataListTotalPages::text').get().replace(',',''))
+        total_pages=0#int(response.css('span.entitiesDataListTotalPages::text').get().replace(',',''))
 
         current_page=1
         while current_page<=total_pages:
