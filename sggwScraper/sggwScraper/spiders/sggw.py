@@ -69,7 +69,7 @@ class SggwSpider(scrapy.Spider):
         page = response.meta['playwright_page']
        
         bw_url='https://bw.sggw.edu.pl'
-        total_pages=0#int(response.css('span.entitiesDataListTotalPages::text').get())
+        total_pages=2#int(response.css('span.entitiesDataListTotalPages::text').get())
         #get scientist links from the page
         current_page=1
         while current_page<=total_pages:
@@ -112,7 +112,8 @@ class SggwSpider(scrapy.Spider):
             organization['institute']=institute
 
             cathedras = domain.css('ul.ui-treenode-children li.ui-treenode-leaf div.ui-treenode-content div.ui-treenode-label span>span::text').getall()
-            organization['cathedras']=cathedras
+            if cathedras:
+                organization['cathedras']=cathedras
             
             yield organization
 
@@ -152,7 +153,7 @@ class SggwSpider(scrapy.Spider):
         page = response.meta['playwright_page']
         
         bw_url='https://bw.sggw.edu.pl'
-        total_pages=0#int(response.css('span.entitiesDataListTotalPages::text').get().replace(',',''))
+        total_pages=2#int(response.css('span.entitiesDataListTotalPages::text').get().replace(',',''))
 
         current_page=1
         while current_page<=total_pages:
