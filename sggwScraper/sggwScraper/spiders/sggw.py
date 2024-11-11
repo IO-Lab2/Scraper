@@ -1,7 +1,15 @@
 import scrapy
+import playwright
+import asyncio
+import logging
 from scrapy_playwright.page import PageMethod
-
+from playwright.async_api import TimeoutError
 from sggwScraper.items import ScientistItem, organizationItem, publicationItem
+
+logging.getLogger('asyncio').setLevel(logging.CRITICAL)
+
+
+
 
 class SggwSpider(scrapy.Spider):
     name = "sggw"
@@ -32,9 +40,9 @@ class SggwSpider(scrapy.Spider):
             playwright=True,
             playwright_include_page=True,
             playwright_page_methods =[
-                PageMethod('wait_for_selector', 'div#entitiesT_content ul.ui-dataview-list-container'),
+                PageMethod('wait_for_selector', 'a.authorNameLink'),
                 PageMethod('wait_for_selector', 'div#searchResultsFiltersInnerPanel' ),
-                PageMethod('wait_for_selector', 'div#afftreemain>div#groupingPanel>ul.ui-tree-container'),
+                PageMethod('wait_for_selector', 'div#afftreemain div#groupingPanel ul.ui-tree-container'),
                 PageMethod("evaluate", """
                             async () => {
                                 const expandAllNodes = async () => {
@@ -59,7 +67,7 @@ class SggwSpider(scrapy.Spider):
             playwright=True,
             playwright_include_page=True,
             playwright_page_methods =[
-                PageMethod('wait_for_selector', 'ul.ui-dataview-list-container li.ui-dataview-row')
+                PageMethod('wait_for_selector', 'div.entity-row-heading-wrapper h5 a')
                 ],
             errback=self.errback
         ))
@@ -69,7 +77,24 @@ class SggwSpider(scrapy.Spider):
         page = response.meta['playwright_page']
        
         bw_url='https://bw.sggw.edu.pl'
-        total_pages=2#int(response.css('span.entitiesDataListTotalPages::text').get())
+        #filters section
+        organizations=response.css('div#afftreemain>div#groupingPanel>ul.ui-tree-container>li>ul.ui-treenode-children>li')
+        university=response.css('div#afftreemain>div#groupingPanel>ul.ui-tree-container>li>div.ui-treenode-content div.ui-treenode-label>span>span::text').get()
+        for org in organizations:
+            organization=organizationItem()
+            organization['university']=university
+
+            institute=org.css('div.ui-treenode-content div.ui-treenode-label span>span::text').get()
+            organization['institute']=institute
+
+            cathedras = org.css('ul.ui-treenode-children li.ui-treenode-leaf div.ui-treenode-content div.ui-treenode-label span>span::text').getall()
+            if cathedras:
+                organization['cathedras']=cathedras
+            
+            yield organization
+
+        
+        total_pages=50#int(response.css('span.entitiesDataListTotalPages::text').get())
         #get scientist links from the page
         current_page=1
         while current_page<=total_pages:
@@ -81,9 +106,7 @@ class SggwSpider(scrapy.Spider):
                     playwright=True,
                     playwright_include_page=True,
                     playwright_page_methods =[
-                        PageMethod('wait_for_selector', 'div#authorProfileBasicInfoPanel'),
-                        PageMethod('wait_for_selector', 'div#authorProfileGridContainer'),
-                        PageMethod('wait_for_selector', 'div.otherInfoContainer' )
+                        PageMethod('wait_for_selector', 'div.authorProfileBasicInfoPanel')
                         ],
                     errback=self.errback
                 ))
@@ -92,7 +115,9 @@ class SggwSpider(scrapy.Spider):
                 next_button_selector = ".ui-paginator-next.ui-state-default.ui-corner-all"
                 await page.wait_for_selector(next_button_selector, state="visible")
                 await page.click(next_button_selector)
-                await page.wait_for_selector('div#entitiesT_content ul.ui-dataview-list-container')
+                await page.wait_for_timeout(400)
+                #await page.wait_for_selector('a.authorNameLink')
+                
                 content = await page.content()
                 response = response.replace(body=content)
                 current_page+=1
@@ -101,22 +126,9 @@ class SggwSpider(scrapy.Spider):
                 
         
             
-        #filters section
-        domains_disciplines=response.css('div#afftreemain>div#groupingPanel>ul.ui-tree-container>li>ul.ui-treenode-children>li')
-        university=response.css('div#afftreemain>div#groupingPanel>ul.ui-tree-container>li>div.ui-treenode-content div.ui-treenode-label>span>span::text').get()
-        for domain in domains_disciplines:
-            organization=organizationItem()
-            organization['university']=university
+       
 
-            institute=domain.css('div.ui-treenode-content div.ui-treenode-label span>span::text').get()
-            organization['institute']=institute
-
-            cathedras = domain.css('ul.ui-treenode-children li.ui-treenode-leaf div.ui-treenode-content div.ui-treenode-label span>span::text').getall()
-            if cathedras:
-                organization['cathedras']=cathedras
-            
-            yield organization
-
+        await asyncio.sleep(0.1)
         await page.close()
         
         
@@ -127,24 +139,56 @@ class SggwSpider(scrapy.Spider):
             Scrapes scientist profile page
         '''
         page = response.meta['playwright_page']
-        
-        personal_data=response.css('div.authorProfileBasicInfoPanel')
-        name_title=personal_data.css('span.authorName::text').getall()
-        research_area=response.css('div.researchFieldsPanel')
 
         scientist=ScientistItem()
         
-        scientist['first_name']= name_title[0]
-        scientist['last_name']= name_title[1]
-        scientist['academic_title']= name_title[2]
-        scientist['research_area']= research_area.css('ul.ul-element-wcag li span::text').getall()
-        scientist['email']= personal_data.css('p.authorContactInfoEmailContainer>a::text').get()
+        await page.wait_for_timeout(200)
+
+        personal_data=response.css('div.authorProfileBasicInfoPanel')
+        try:
+            await page.wait_for_selector('div.authorProfileBasicInfoPanel>p', state='visible')
+            name_title=personal_data.css('span.authorName::text').getall()
+            scientist['first_name']= name_title[0]
+            scientist['last_name']= name_title[1]
+            if len(name_title)>2:
+                scientist['academic_title']= name_title[2]
+            else:
+                scientist['academic_title']=''
+        except:
+            scientist['first_name']=''
+            scientist['last_name']=''
+            scientist['academic_title']=''
+
+        try:
+            await page.wait_for_selector('div.researchFieldsPanel ul.ul-element-wcag li span', state='visible')
+            scientist['research_area']= response.css('div.researchFieldsPanel ul.ul-element-wcag li span::text').getall()
+        except:
+            scientist['research_area']=''
+
+        try:
+            await page.wait_for_selector('p.authorContactInfoEmailContainer>a', state='visible')
+            scientist['email']= personal_data.css('p.authorContactInfoEmailContainer>a::text').get()
+        except:
+            scientist['email']=''
+
         scientist['profile_url']= response.url
-        scientist['h_index']=response.css('div.bibliometricsPanel>ul.ul-element-wcag>li:nth-child(1)>a::text').get()
-        scientist['publication_count']=response.css('div.achievementsTable ul.ul-element-wcag>li:nth-child(1)>div.achievmentResultListLink>a::text').get()
-        #need fix
-        #scientist['ministerial_score']=response.css('div.bibliometricsPanel>ul.ul-element-wcag>li:nth-child(6)>div::text').get()
+
+        
+        try:
+            await page.wait_for_selector('div.bibliometricsPanel>ul.ul-element-wcag>li:nth-child(1)>a', state='visible')
+            scientist['h_index']=response.css('div.bibliometricsPanel>ul.ul-element-wcag>li:nth-child(1)>a::text').get()
+        except:
+            scientist['h_index']=0
+
+        try:
+            await page.wait_for_selector('div.achievementsTable ul.ul-element-wcag>li:nth-child(1)>div.achievmentResultListLink>a', state='visible')
+            pub_count=response.css('div.achievementsTable ul.ul-element-wcag>li:nth-child(1)>div.achievmentResultListLink>a::text').get()
+            scientist['publication_count']=pub_count
+        except:
+            scientist['publication_count']=0
+
         yield scientist
+        await asyncio.sleep(0.1)
         await page.close()
         
 
@@ -153,7 +197,7 @@ class SggwSpider(scrapy.Spider):
         page = response.meta['playwright_page']
         
         bw_url='https://bw.sggw.edu.pl'
-        total_pages=2#int(response.css('span.entitiesDataListTotalPages::text').get().replace(',',''))
+        total_pages=0#int(response.css('span.entitiesDataListTotalPages::text').get().replace(',',''))
 
         current_page=1
         while current_page<=total_pages:
@@ -165,8 +209,8 @@ class SggwSpider(scrapy.Spider):
                     playwright=True,
                     playwright_include_page=True,
                     playwright_page_methods =[
-                        PageMethod('wait_for_selector', 'div.publicationShortInfo'),
-                        PageMethod('wait_for_selector', 'dl.table2ColsContainer dt' )
+                        PageMethod('wait_for_selector', 'div.publicationShortInfo', state='visible'),
+                        PageMethod('wait_for_selector', 'dl.table2ColsContainer dt', state='visible')
                         ],
                     errback=self.errback
                 ))
@@ -176,6 +220,7 @@ class SggwSpider(scrapy.Spider):
                 next_button_selector = ".ui-paginator-next.ui-state-default.ui-corner-all"
                 await page.wait_for_selector(next_button_selector, state="visible")
                 await page.click(next_button_selector)
+                await page.wait_for_timeout(400)
                 await page.wait_for_selector('ul.ui-dataview-list-container li.ui-dataview-row')
                 content = await page.content()
                 response = response.replace(body=content)
@@ -188,6 +233,7 @@ class SggwSpider(scrapy.Spider):
     async def parse_publication(self, response):
         page = response.meta['playwright_page']
 
+        await page.wait_for_timeout(200)
         authors_selector = response.css('div.authorList div.authorListElement a')
         authors=[]
 
@@ -196,17 +242,45 @@ class SggwSpider(scrapy.Spider):
 
         publication=publicationItem()
 
-        publication['title']=response.css('div.publicationShortInfo>h2::text').get()
-        publication['journal']=response.xpath('//*[@id="j_id_3_1q_1_1_1a_5_3_1_1:0:j_id_3_1q_1_1_1a_5_3_1_5_1"]/text()').get()
-        publication['publication_date']= response.xpath('//dl[contains(@class, "table2ColsContainer")]//dt[span[contains(text(), "Issue year")]]/following-sibling::dd[1]//text()').get()
-        publication['citations_count']=response.xpath('//dt[span/text()="Publication indicators"]/following-sibling::dd[1]/ul/li[1]/a/text()').re_first(r'=\s*(\d+)')
+        title=response.css('div.publicationShortInfo>h2::text').get()
+        if title:
+            publication['title']=title
+        else:
+            publication['title']=''
+
+        journal=response.xpath('//*[@id="j_id_3_1q_1_1_1a_5_3_1_1:0:j_id_3_1q_1_1_1a_5_3_1_5_1"]/text()').get()
+        if journal:
+            publication['journal']=journal
+        else:
+            publication['journal']=''
+
+        publication_date= response.xpath('//dl[contains(@class, "table2ColsContainer")]//dt[span[contains(text(), "Issue year")]]/following-sibling::dd[1]//text()').get()
+        if publication_date:
+            publication['publication_date']=publication_date
+        else:
+            publication['publication_date']=''
+
+        citations_count=response.xpath('//dt[span/text()="Publication indicators"]/following-sibling::dd[1]/ul/li[1]/a/text()').re_first(r'=\s*(\d+)')
+        if citations_count:
+            publication['citations_count']=citations_count
+        else:
+            publication['citations_count']=0
         publication['authors']=authors
 
         yield publication
+        await asyncio.sleep(0.1)
         await page.close()
             
     
         
     async def errback(self, failure):
+        self.logger.error(f"Error loading {failure.request.url}: {repr(failure)}")
+    
+        # Ponowna próba żądania
+        if failure.check(playwright._impl._errors.TimeoutError):
+            self.logger.info(f"Retrying {failure.request.url}")
+            yield failure.request.replace(dont_filter=True)
+        with open("scrapy_specific_errors.log", "a") as f:
+            f.write(f"Error on {failure.request.url}: {repr(failure)}\n")
         page = failure.request.meta['playwright_page']
         await page.close()

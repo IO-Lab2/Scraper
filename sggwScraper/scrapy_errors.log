@@ -1,0 +1,561 @@
+2024-11-11 16:38:54 [scrapy.core.scraper] ERROR: Error downloading <GET https://bw.sggw.edu.pl/info/author/WULS048b0cb3240d490cb559cdebd6d53bb6?r=author&tab=&title=Person%2Bprofile%2B%25E2%2580%2593%2BGrzegorz%2BWrzesi%25C5%2584ski%2B%25E2%2580%2593%2BWarsaw%2BUniversity%2Bof%2BLife%2BSciences%2B-%2BSGGW&lang=en>
+Traceback (most recent call last):
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\twisted\internet\defer.py", line 1996, in _inlineCallbacks
+    result = context.run(
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\twisted\python\failure.py", line 519, in throwExceptionIntoGenerator
+    return g.throw(self.type, self.value, self.tb)
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\core\downloader\middleware.py", line 54, in process_request
+    return (yield download_func(request=request, spider=spider))
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\twisted\internet\defer.py", line 1248, in adapt
+    extracted: _SelfResultT | Failure = result.result()
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy_playwright\_utils.py", line 120, in _handle_coro
+    future.set_result(await coro)
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy_playwright\handler.py", line 378, in _download_request
+    return await self._download_request_with_retry(request=request, spider=spider)
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy_playwright\handler.py", line 431, in _download_request_with_retry
+    return await self._download_request_with_page(request, page, spider)
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy_playwright\handler.py", line 479, in _download_request_with_page
+    await self._apply_page_methods(page, request, spider)
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy_playwright\handler.py", line 625, in _apply_page_methods
+    pm.result = await _maybe_await(method(*pm.args, **pm.kwargs))
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy_playwright\_utils.py", line 21, in _maybe_await
+    return await obj
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\playwright\async_api\_generated.py", line 8158, in wait_for_selector
+    await self._impl_obj.wait_for_selector(
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\playwright\_impl\_page.py", line 426, in wait_for_selector
+    return await self._main_frame.wait_for_selector(**locals_to_params(locals()))
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\playwright\_impl\_frame.py", line 323, in wait_for_selector
+    await self._channel.send("waitForSelector", locals_to_params(locals()))
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\playwright\_impl\_connection.py", line 59, in send
+    return await self._connection.wrap_api_call(
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\playwright\_impl\_connection.py", line 520, in wrap_api_call
+    raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+playwright._impl._errors.TimeoutError: Page.wait_for_selector: Timeout 30000ms exceeded.
+Call log:
+waiting for locator("div.authorProfileBasicInfoPanel") to be visible
+
+2024-11-11 16:51:03 [scrapy.core.scraper] ERROR: Error downloading <GET https://bw.sggw.edu.pl/info/author/WULSd50aa79f34b0430b88bf6a84758b5941?r=author&tab=&title=Person%2Bprofile%2B%25E2%2580%2593%2BBeata%2BPrabucka%2B%25E2%2580%2593%2BWarsaw%2BUniversity%2Bof%2BLife%2BSciences%2B-%2BSGGW&lang=en>
+Traceback (most recent call last):
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\twisted\internet\defer.py", line 1996, in _inlineCallbacks
+    result = context.run(
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\twisted\python\failure.py", line 519, in throwExceptionIntoGenerator
+    return g.throw(self.type, self.value, self.tb)
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\core\downloader\middleware.py", line 54, in process_request
+    return (yield download_func(request=request, spider=spider))
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\twisted\internet\defer.py", line 1248, in adapt
+    extracted: _SelfResultT | Failure = result.result()
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy_playwright\_utils.py", line 120, in _handle_coro
+    future.set_result(await coro)
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy_playwright\handler.py", line 378, in _download_request
+    return await self._download_request_with_retry(request=request, spider=spider)
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy_playwright\handler.py", line 397, in _download_request_with_retry
+    page = await self._create_page(request=request, spider=spider)
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy_playwright\handler.py", line 303, in _create_page
+    page = await ctx_wrapper.context.new_page()
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\playwright\async_api\_generated.py", line 12767, in new_page
+    return mapping.from_impl(await self._impl_obj.new_page())
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\playwright\_impl\_browser_context.py", line 326, in new_page
+    return from_channel(await self._channel.send("newPage"))
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\playwright\_impl\_connection.py", line 59, in send
+    return await self._connection.wrap_api_call(
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\playwright\_impl\_connection.py", line 520, in wrap_api_call
+    raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+Exception: BrowserContext.new_page: Connection closed while reading from the driver
+2024-11-11 16:51:03 [scrapy.core.scraper] ERROR: Error downloading <GET https://bw.sggw.edu.pl/info/author/WULSd73c15867aae4ec09352890f401956b4?r=author&tab=&title=Person%2Bprofile%2B%25E2%2580%2593%2BRafa%25C5%2582%2BWojtan%2B%25E2%2580%2593%2BWarsaw%2BUniversity%2Bof%2BLife%2BSciences%2B-%2BSGGW&lang=en>
+Traceback (most recent call last):
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\twisted\internet\defer.py", line 1996, in _inlineCallbacks
+    result = context.run(
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\twisted\python\failure.py", line 519, in throwExceptionIntoGenerator
+    return g.throw(self.type, self.value, self.tb)
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\core\downloader\middleware.py", line 54, in process_request
+    return (yield download_func(request=request, spider=spider))
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\twisted\internet\defer.py", line 1248, in adapt
+    extracted: _SelfResultT | Failure = result.result()
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy_playwright\_utils.py", line 120, in _handle_coro
+    future.set_result(await coro)
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy_playwright\handler.py", line 378, in _download_request
+    return await self._download_request_with_retry(request=request, spider=spider)
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy_playwright\handler.py", line 397, in _download_request_with_retry
+    page = await self._create_page(request=request, spider=spider)
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy_playwright\handler.py", line 303, in _create_page
+    page = await ctx_wrapper.context.new_page()
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\playwright\async_api\_generated.py", line 12767, in new_page
+    return mapping.from_impl(await self._impl_obj.new_page())
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\playwright\_impl\_browser_context.py", line 326, in new_page
+    return from_channel(await self._channel.send("newPage"))
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\playwright\_impl\_connection.py", line 59, in send
+    return await self._connection.wrap_api_call(
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\playwright\_impl\_connection.py", line 520, in wrap_api_call
+    raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+Exception: BrowserContext.new_page: Connection closed while reading from the driver
+2024-11-11 16:51:03 [scrapy.core.scraper] ERROR: Error downloading <GET https://bw.sggw.edu.pl/info/author/WULSd2dcd442dacc49bc9c5d159840090320?r=author&tab=&title=Person%2Bprofile%2B%25E2%2580%2593%2BJustyna%2BFidler%2B%25E2%2580%2593%2BWarsaw%2BUniversity%2Bof%2BLife%2BSciences%2B-%2BSGGW&lang=en>
+Traceback (most recent call last):
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\twisted\internet\defer.py", line 1996, in _inlineCallbacks
+    result = context.run(
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\twisted\python\failure.py", line 519, in throwExceptionIntoGenerator
+    return g.throw(self.type, self.value, self.tb)
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\core\downloader\middleware.py", line 54, in process_request
+    return (yield download_func(request=request, spider=spider))
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\twisted\internet\defer.py", line 1248, in adapt
+    extracted: _SelfResultT | Failure = result.result()
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy_playwright\_utils.py", line 120, in _handle_coro
+    future.set_result(await coro)
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy_playwright\handler.py", line 378, in _download_request
+    return await self._download_request_with_retry(request=request, spider=spider)
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy_playwright\handler.py", line 397, in _download_request_with_retry
+    page = await self._create_page(request=request, spider=spider)
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy_playwright\handler.py", line 303, in _create_page
+    page = await ctx_wrapper.context.new_page()
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\playwright\async_api\_generated.py", line 12767, in new_page
+    return mapping.from_impl(await self._impl_obj.new_page())
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\playwright\_impl\_browser_context.py", line 326, in new_page
+    return from_channel(await self._channel.send("newPage"))
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\playwright\_impl\_connection.py", line 59, in send
+    return await self._connection.wrap_api_call(
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\playwright\_impl\_connection.py", line 520, in wrap_api_call
+    raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+Exception: BrowserContext.new_page: Connection closed while reading from the driver
+2024-11-11 16:51:07 [scrapy.core.scraper] ERROR: Spider error processing <GET https://bw.sggw.edu.pl/info/author/WULSedc032c99b98434fa88030e46187cd6f?r=author&tab=&title=Person%2Bprofile%2B%25E2%2580%2593%2BJan%2BSzaty%25C5%2582owicz%2B%25E2%2580%2593%2BWarsaw%2BUniversity%2Bof%2BLife%2BSciences%2B-%2BSGGW&lang=en> (referer: https://bw.sggw.edu.pl/globalResultList.seam?r=author&tab=PEOPLE&lang=en)
+Traceback (most recent call last):
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\utils\defer.py", line 295, in aiter_errback
+    yield await it.__anext__()
+          ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\utils\python.py", line 374, in __anext__
+    return await self.data.__anext__()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\utils\python.py", line 355, in _async_chain
+    async for o in as_async_generator(it):
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\utils\asyncgen.py", line 14, in as_async_generator
+    async for r in it:
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\utils\python.py", line 374, in __anext__
+    return await self.data.__anext__()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\utils\python.py", line 355, in _async_chain
+    async for o in as_async_generator(it):
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\utils\asyncgen.py", line 14, in as_async_generator
+    async for r in it:
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\core\spidermw.py", line 118, in process_async
+    async for r in iterable:
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\spidermiddlewares\offsite.py", line 31, in process_spider_output_async
+    async for r in result or ():
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\core\spidermw.py", line 118, in process_async
+    async for r in iterable:
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\spidermiddlewares\referer.py", line 355, in process_spider_output_async
+    async for r in result or ():
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\core\spidermw.py", line 118, in process_async
+    async for r in iterable:
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\spidermiddlewares\urllength.py", line 30, in process_spider_output_async
+    async for r in result or ():
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\core\spidermw.py", line 118, in process_async
+    async for r in iterable:
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\spidermiddlewares\depth.py", line 35, in process_spider_output_async
+    async for r in result or ():
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\core\spidermw.py", line 118, in process_async
+    async for r in iterable:
+  File "C:\Users\Kamil\Desktop\PYTHON\WebScraping\SGGW_scraper\Scraper\sggwScraper\sggwScraper\spiders\sggw.py", line 192, in parse_scientist
+    await page.close()
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\playwright\async_api\_generated.py", line 9767, in close
+    await self._impl_obj.close(runBeforeUnload=run_before_unload, reason=reason)
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\playwright\_impl\_page.py", line 809, in close
+    raise e
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\playwright\_impl\_page.py", line 804, in close
+    await self._channel.send("close", locals_to_params(locals()))
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\playwright\_impl\_connection.py", line 59, in send
+    return await self._connection.wrap_api_call(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\playwright\_impl\_connection.py", line 520, in wrap_api_call
+    raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+Exception: Page.close: Connection closed while reading from the driver
+2024-11-11 16:51:07 [scrapy.core.scraper] ERROR: Spider error processing <GET https://bw.sggw.edu.pl/info/author/WULS0b5e56de9d534e819924ddd7faaef2b2?r=author&tab=&title=Person%2Bprofile%2B%25E2%2580%2593%2BJoanna%2BWrzesi%25C5%2584ska-Kowal%2B%25E2%2580%2593%2BWarsaw%2BUniversity%2Bof%2BLife%2BSciences%2B-%2BSGGW&lang=en> (referer: https://bw.sggw.edu.pl/globalResultList.seam?r=author&tab=PEOPLE&lang=en)
+Traceback (most recent call last):
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\utils\defer.py", line 295, in aiter_errback
+    yield await it.__anext__()
+          ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\utils\python.py", line 374, in __anext__
+    return await self.data.__anext__()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\utils\python.py", line 355, in _async_chain
+    async for o in as_async_generator(it):
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\utils\asyncgen.py", line 14, in as_async_generator
+    async for r in it:
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\utils\python.py", line 374, in __anext__
+    return await self.data.__anext__()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\utils\python.py", line 355, in _async_chain
+    async for o in as_async_generator(it):
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\utils\asyncgen.py", line 14, in as_async_generator
+    async for r in it:
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\core\spidermw.py", line 118, in process_async
+    async for r in iterable:
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\spidermiddlewares\offsite.py", line 31, in process_spider_output_async
+    async for r in result or ():
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\core\spidermw.py", line 118, in process_async
+    async for r in iterable:
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\spidermiddlewares\referer.py", line 355, in process_spider_output_async
+    async for r in result or ():
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\core\spidermw.py", line 118, in process_async
+    async for r in iterable:
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\spidermiddlewares\urllength.py", line 30, in process_spider_output_async
+    async for r in result or ():
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\core\spidermw.py", line 118, in process_async
+    async for r in iterable:
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\spidermiddlewares\depth.py", line 35, in process_spider_output_async
+    async for r in result or ():
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\core\spidermw.py", line 118, in process_async
+    async for r in iterable:
+  File "C:\Users\Kamil\Desktop\PYTHON\WebScraping\SGGW_scraper\Scraper\sggwScraper\sggwScraper\spiders\sggw.py", line 192, in parse_scientist
+    await page.close()
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\playwright\async_api\_generated.py", line 9767, in close
+    await self._impl_obj.close(runBeforeUnload=run_before_unload, reason=reason)
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\playwright\_impl\_page.py", line 809, in close
+    raise e
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\playwright\_impl\_page.py", line 804, in close
+    await self._channel.send("close", locals_to_params(locals()))
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\playwright\_impl\_connection.py", line 59, in send
+    return await self._connection.wrap_api_call(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\playwright\_impl\_connection.py", line 520, in wrap_api_call
+    raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+Exception: Page.close: Connection closed while reading from the driver
+2024-11-11 16:51:07 [scrapy.core.scraper] ERROR: Error downloading <GET https://bw.sggw.edu.pl/info/author/WULScfb3ddd84887483d9140a77b38c660ec?r=author&tab=&title=Person%2Bprofile%2B%25E2%2580%2593%2BKonrad%2BPodawca%2B%25E2%2580%2593%2BWarsaw%2BUniversity%2Bof%2BLife%2BSciences%2B-%2BSGGW&lang=en>
+Traceback (most recent call last):
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\twisted\internet\defer.py", line 1996, in _inlineCallbacks
+    result = context.run(
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\twisted\python\failure.py", line 519, in throwExceptionIntoGenerator
+    return g.throw(self.type, self.value, self.tb)
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\core\downloader\middleware.py", line 54, in process_request
+    return (yield download_func(request=request, spider=spider))
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\twisted\internet\defer.py", line 1248, in adapt
+    extracted: _SelfResultT | Failure = result.result()
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy_playwright\_utils.py", line 120, in _handle_coro
+    future.set_result(await coro)
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy_playwright\handler.py", line 378, in _download_request
+    return await self._download_request_with_retry(request=request, spider=spider)
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy_playwright\handler.py", line 397, in _download_request_with_retry
+    page = await self._create_page(request=request, spider=spider)
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy_playwright\handler.py", line 303, in _create_page
+    page = await ctx_wrapper.context.new_page()
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\playwright\async_api\_generated.py", line 12767, in new_page
+    return mapping.from_impl(await self._impl_obj.new_page())
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\playwright\_impl\_browser_context.py", line 326, in new_page
+    return from_channel(await self._channel.send("newPage"))
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\playwright\_impl\_connection.py", line 59, in send
+    return await self._connection.wrap_api_call(
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\playwright\_impl\_connection.py", line 520, in wrap_api_call
+    raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+Exception: BrowserContext.new_page: Connection closed while reading from the driver
+2024-11-11 16:51:11 [scrapy.core.scraper] ERROR: Error downloading <GET https://bw.sggw.edu.pl/info/author/WULSc91645150d204ac8bbefc70504f91d41?r=author&tab=&title=Person%2Bprofile%2B%25E2%2580%2593%2BMiros%25C5%2582aw%2BWasilewski%2B%25E2%2580%2593%2BWarsaw%2BUniversity%2Bof%2BLife%2BSciences%2B-%2BSGGW&lang=en>
+Traceback (most recent call last):
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\twisted\internet\defer.py", line 1996, in _inlineCallbacks
+    result = context.run(
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\twisted\python\failure.py", line 519, in throwExceptionIntoGenerator
+    return g.throw(self.type, self.value, self.tb)
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\core\downloader\middleware.py", line 54, in process_request
+    return (yield download_func(request=request, spider=spider))
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\twisted\internet\defer.py", line 1248, in adapt
+    extracted: _SelfResultT | Failure = result.result()
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy_playwright\_utils.py", line 120, in _handle_coro
+    future.set_result(await coro)
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy_playwright\handler.py", line 378, in _download_request
+    return await self._download_request_with_retry(request=request, spider=spider)
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy_playwright\handler.py", line 397, in _download_request_with_retry
+    page = await self._create_page(request=request, spider=spider)
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy_playwright\handler.py", line 303, in _create_page
+    page = await ctx_wrapper.context.new_page()
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\playwright\async_api\_generated.py", line 12767, in new_page
+    return mapping.from_impl(await self._impl_obj.new_page())
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\playwright\_impl\_browser_context.py", line 326, in new_page
+    return from_channel(await self._channel.send("newPage"))
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\playwright\_impl\_connection.py", line 59, in send
+    return await self._connection.wrap_api_call(
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\playwright\_impl\_connection.py", line 520, in wrap_api_call
+    raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+Exception: BrowserContext.new_page: Connection closed while reading from the driver
+2024-11-11 16:51:15 [scrapy.core.scraper] ERROR: Spider error processing <GET https://bw.sggw.edu.pl/info/author/WULSe02294d16bbc4560aa64795faff584d7?r=author&tab=&title=Person%2Bprofile%2B%25E2%2580%2593%2BMarta%2BGietler%2B%25E2%2580%2593%2BWarsaw%2BUniversity%2Bof%2BLife%2BSciences%2B-%2BSGGW&lang=en> (referer: https://bw.sggw.edu.pl/globalResultList.seam?r=author&tab=PEOPLE&lang=en)
+Traceback (most recent call last):
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\utils\defer.py", line 295, in aiter_errback
+    yield await it.__anext__()
+          ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\utils\python.py", line 374, in __anext__
+    return await self.data.__anext__()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\utils\python.py", line 355, in _async_chain
+    async for o in as_async_generator(it):
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\utils\asyncgen.py", line 14, in as_async_generator
+    async for r in it:
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\utils\python.py", line 374, in __anext__
+    return await self.data.__anext__()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\utils\python.py", line 355, in _async_chain
+    async for o in as_async_generator(it):
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\utils\asyncgen.py", line 14, in as_async_generator
+    async for r in it:
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\core\spidermw.py", line 118, in process_async
+    async for r in iterable:
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\spidermiddlewares\offsite.py", line 31, in process_spider_output_async
+    async for r in result or ():
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\core\spidermw.py", line 118, in process_async
+    async for r in iterable:
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\spidermiddlewares\referer.py", line 355, in process_spider_output_async
+    async for r in result or ():
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\core\spidermw.py", line 118, in process_async
+    async for r in iterable:
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\spidermiddlewares\urllength.py", line 30, in process_spider_output_async
+    async for r in result or ():
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\core\spidermw.py", line 118, in process_async
+    async for r in iterable:
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\spidermiddlewares\depth.py", line 35, in process_spider_output_async
+    async for r in result or ():
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\core\spidermw.py", line 118, in process_async
+    async for r in iterable:
+  File "C:\Users\Kamil\Desktop\PYTHON\WebScraping\SGGW_scraper\Scraper\sggwScraper\sggwScraper\spiders\sggw.py", line 192, in parse_scientist
+    await page.close()
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\playwright\async_api\_generated.py", line 9767, in close
+    await self._impl_obj.close(runBeforeUnload=run_before_unload, reason=reason)
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\playwright\_impl\_page.py", line 809, in close
+    raise e
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\playwright\_impl\_page.py", line 804, in close
+    await self._channel.send("close", locals_to_params(locals()))
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\playwright\_impl\_connection.py", line 59, in send
+    return await self._connection.wrap_api_call(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\playwright\_impl\_connection.py", line 520, in wrap_api_call
+    raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+Exception: Page.close: Connection closed while reading from the driver
+2024-11-11 16:51:15 [scrapy.core.scraper] ERROR: Spider error processing <GET https://bw.sggw.edu.pl/info/author/WULSf363b2db2e044bfd9b53037d77e61379?r=author&tab=&title=Person%2Bprofile%2B%25E2%2580%2593%2BEl%25C5%25BCbieta%2BKacperska%2B%25E2%2580%2593%2BWarsaw%2BUniversity%2Bof%2BLife%2BSciences%2B-%2BSGGW&lang=en> (referer: https://bw.sggw.edu.pl/globalResultList.seam?r=author&tab=PEOPLE&lang=en)
+Traceback (most recent call last):
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\utils\defer.py", line 295, in aiter_errback
+    yield await it.__anext__()
+          ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\utils\python.py", line 374, in __anext__
+    return await self.data.__anext__()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\utils\python.py", line 355, in _async_chain
+    async for o in as_async_generator(it):
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\utils\asyncgen.py", line 14, in as_async_generator
+    async for r in it:
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\utils\python.py", line 374, in __anext__
+    return await self.data.__anext__()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\utils\python.py", line 355, in _async_chain
+    async for o in as_async_generator(it):
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\utils\asyncgen.py", line 14, in as_async_generator
+    async for r in it:
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\core\spidermw.py", line 118, in process_async
+    async for r in iterable:
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\spidermiddlewares\offsite.py", line 31, in process_spider_output_async
+    async for r in result or ():
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\core\spidermw.py", line 118, in process_async
+    async for r in iterable:
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\spidermiddlewares\referer.py", line 355, in process_spider_output_async
+    async for r in result or ():
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\core\spidermw.py", line 118, in process_async
+    async for r in iterable:
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\spidermiddlewares\urllength.py", line 30, in process_spider_output_async
+    async for r in result or ():
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\core\spidermw.py", line 118, in process_async
+    async for r in iterable:
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\spidermiddlewares\depth.py", line 35, in process_spider_output_async
+    async for r in result or ():
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\core\spidermw.py", line 118, in process_async
+    async for r in iterable:
+  File "C:\Users\Kamil\Desktop\PYTHON\WebScraping\SGGW_scraper\Scraper\sggwScraper\sggwScraper\spiders\sggw.py", line 192, in parse_scientist
+    await page.close()
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\playwright\async_api\_generated.py", line 9767, in close
+    await self._impl_obj.close(runBeforeUnload=run_before_unload, reason=reason)
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\playwright\_impl\_page.py", line 809, in close
+    raise e
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\playwright\_impl\_page.py", line 804, in close
+    await self._channel.send("close", locals_to_params(locals()))
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\playwright\_impl\_connection.py", line 59, in send
+    return await self._connection.wrap_api_call(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\playwright\_impl\_connection.py", line 520, in wrap_api_call
+    raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+Exception: Page.close: Connection closed while reading from the driver
+2024-11-11 16:51:16 [scrapy.core.scraper] ERROR: Error downloading <GET https://bw.sggw.edu.pl/info/author/WULSc3e58573fbd0417899d862e9cd654dbe?r=author&tab=&title=Person%2Bprofile%2B%25E2%2580%2593%2BRita%2BBrzezi%25C5%2584ska%2B%25E2%2580%2593%2BWarsaw%2BUniversity%2Bof%2BLife%2BSciences%2B-%2BSGGW&lang=en>
+Traceback (most recent call last):
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\twisted\internet\defer.py", line 1996, in _inlineCallbacks
+    result = context.run(
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\twisted\python\failure.py", line 519, in throwExceptionIntoGenerator
+    return g.throw(self.type, self.value, self.tb)
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\core\downloader\middleware.py", line 54, in process_request
+    return (yield download_func(request=request, spider=spider))
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\twisted\internet\defer.py", line 1248, in adapt
+    extracted: _SelfResultT | Failure = result.result()
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy_playwright\_utils.py", line 120, in _handle_coro
+    future.set_result(await coro)
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy_playwright\handler.py", line 378, in _download_request
+    return await self._download_request_with_retry(request=request, spider=spider)
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy_playwright\handler.py", line 397, in _download_request_with_retry
+    page = await self._create_page(request=request, spider=spider)
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy_playwright\handler.py", line 303, in _create_page
+    page = await ctx_wrapper.context.new_page()
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\playwright\async_api\_generated.py", line 12767, in new_page
+    return mapping.from_impl(await self._impl_obj.new_page())
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\playwright\_impl\_browser_context.py", line 326, in new_page
+    return from_channel(await self._channel.send("newPage"))
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\playwright\_impl\_connection.py", line 59, in send
+    return await self._connection.wrap_api_call(
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\playwright\_impl\_connection.py", line 520, in wrap_api_call
+    raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+Exception: BrowserContext.new_page: Connection closed while reading from the driver
+2024-11-11 16:51:18 [scrapy.core.scraper] ERROR: Spider error processing <GET https://bw.sggw.edu.pl/info/author/WULSda56524cda4548cf8acf862070c8cb6b?r=author&tab=&title=Person%2Bprofile%2B%25E2%2580%2593%2BMicha%25C5%2582%2BSypu%25C5%2582a%2B%25E2%2580%2593%2BWarsaw%2BUniversity%2Bof%2BLife%2BSciences%2B-%2BSGGW&lang=en> (referer: https://bw.sggw.edu.pl/globalResultList.seam?r=author&tab=PEOPLE&lang=en)
+Traceback (most recent call last):
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\utils\defer.py", line 295, in aiter_errback
+    yield await it.__anext__()
+          ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\utils\python.py", line 374, in __anext__
+    return await self.data.__anext__()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\utils\python.py", line 355, in _async_chain
+    async for o in as_async_generator(it):
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\utils\asyncgen.py", line 14, in as_async_generator
+    async for r in it:
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\utils\python.py", line 374, in __anext__
+    return await self.data.__anext__()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\utils\python.py", line 355, in _async_chain
+    async for o in as_async_generator(it):
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\utils\asyncgen.py", line 14, in as_async_generator
+    async for r in it:
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\core\spidermw.py", line 118, in process_async
+    async for r in iterable:
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\spidermiddlewares\offsite.py", line 31, in process_spider_output_async
+    async for r in result or ():
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\core\spidermw.py", line 118, in process_async
+    async for r in iterable:
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\spidermiddlewares\referer.py", line 355, in process_spider_output_async
+    async for r in result or ():
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\core\spidermw.py", line 118, in process_async
+    async for r in iterable:
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\spidermiddlewares\urllength.py", line 30, in process_spider_output_async
+    async for r in result or ():
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\core\spidermw.py", line 118, in process_async
+    async for r in iterable:
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\spidermiddlewares\depth.py", line 35, in process_spider_output_async
+    async for r in result or ():
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\core\spidermw.py", line 118, in process_async
+    async for r in iterable:
+  File "C:\Users\Kamil\Desktop\PYTHON\WebScraping\SGGW_scraper\Scraper\sggwScraper\sggwScraper\spiders\sggw.py", line 192, in parse_scientist
+    await page.close()
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\playwright\async_api\_generated.py", line 9767, in close
+    await self._impl_obj.close(runBeforeUnload=run_before_unload, reason=reason)
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\playwright\_impl\_page.py", line 809, in close
+    raise e
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\playwright\_impl\_page.py", line 804, in close
+    await self._channel.send("close", locals_to_params(locals()))
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\playwright\_impl\_connection.py", line 59, in send
+    return await self._connection.wrap_api_call(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\playwright\_impl\_connection.py", line 520, in wrap_api_call
+    raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+Exception: Page.close: Connection closed while reading from the driver
+2024-11-11 16:51:18 [scrapy.core.scraper] ERROR: Error downloading <GET https://bw.sggw.edu.pl/info/author/WULSbcf439aae51c4876a399d79f12a91c1a?r=author&tab=&title=Person%2Bprofile%2B%25E2%2580%2593%2BKatarzyna%2BGabry%25C5%259B%2B%25E2%2580%2593%2BWarsaw%2BUniversity%2Bof%2BLife%2BSciences%2B-%2BSGGW&lang=en>
+Traceback (most recent call last):
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\twisted\internet\defer.py", line 1996, in _inlineCallbacks
+    result = context.run(
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\twisted\python\failure.py", line 519, in throwExceptionIntoGenerator
+    return g.throw(self.type, self.value, self.tb)
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\core\downloader\middleware.py", line 54, in process_request
+    return (yield download_func(request=request, spider=spider))
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\twisted\internet\defer.py", line 1248, in adapt
+    extracted: _SelfResultT | Failure = result.result()
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy_playwright\_utils.py", line 120, in _handle_coro
+    future.set_result(await coro)
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy_playwright\handler.py", line 378, in _download_request
+    return await self._download_request_with_retry(request=request, spider=spider)
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy_playwright\handler.py", line 397, in _download_request_with_retry
+    page = await self._create_page(request=request, spider=spider)
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy_playwright\handler.py", line 303, in _create_page
+    page = await ctx_wrapper.context.new_page()
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\playwright\async_api\_generated.py", line 12767, in new_page
+    return mapping.from_impl(await self._impl_obj.new_page())
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\playwright\_impl\_browser_context.py", line 326, in new_page
+    return from_channel(await self._channel.send("newPage"))
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\playwright\_impl\_connection.py", line 59, in send
+    return await self._connection.wrap_api_call(
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\playwright\_impl\_connection.py", line 520, in wrap_api_call
+    raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+Exception: BrowserContext.new_page: Connection closed while reading from the driver
+2024-11-11 16:51:26 [scrapy.core.scraper] ERROR: Error downloading <GET https://bw.sggw.edu.pl/info/author/WULSb22ff4f30e814edb9e14adcc832ec17e?r=author&tab=&title=Person%2Bprofile%2B%25E2%2580%2593%2BMonika%2BMarcinkowska-Lesiak%2B%25E2%2580%2593%2BWarsaw%2BUniversity%2Bof%2BLife%2BSciences%2B-%2BSGGW&lang=en>
+Traceback (most recent call last):
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\twisted\internet\defer.py", line 1996, in _inlineCallbacks
+    result = context.run(
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\twisted\python\failure.py", line 519, in throwExceptionIntoGenerator
+    return g.throw(self.type, self.value, self.tb)
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\core\downloader\middleware.py", line 54, in process_request
+    return (yield download_func(request=request, spider=spider))
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\twisted\internet\defer.py", line 1248, in adapt
+    extracted: _SelfResultT | Failure = result.result()
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy_playwright\_utils.py", line 120, in _handle_coro
+    future.set_result(await coro)
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy_playwright\handler.py", line 378, in _download_request
+    return await self._download_request_with_retry(request=request, spider=spider)
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy_playwright\handler.py", line 397, in _download_request_with_retry
+    page = await self._create_page(request=request, spider=spider)
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy_playwright\handler.py", line 303, in _create_page
+    page = await ctx_wrapper.context.new_page()
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\playwright\async_api\_generated.py", line 12767, in new_page
+    return mapping.from_impl(await self._impl_obj.new_page())
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\playwright\_impl\_browser_context.py", line 326, in new_page
+    return from_channel(await self._channel.send("newPage"))
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\playwright\_impl\_connection.py", line 59, in send
+    return await self._connection.wrap_api_call(
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\playwright\_impl\_connection.py", line 520, in wrap_api_call
+    raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+Exception: BrowserContext.new_page: Connection closed while reading from the driver
+2024-11-11 16:51:28 [scrapy.core.scraper] ERROR: Error downloading <GET https://bw.sggw.edu.pl/info/author/WULSafa846f961be4ebfab1700d0f1780ee6?r=author&tab=&title=Person%2Bprofile%2B%25E2%2580%2593%2BMariola%2BChrzanowska%2B%25E2%2580%2593%2BWarsaw%2BUniversity%2Bof%2BLife%2BSciences%2B-%2BSGGW&lang=en>
+Traceback (most recent call last):
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\twisted\internet\defer.py", line 1996, in _inlineCallbacks
+    result = context.run(
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\twisted\python\failure.py", line 519, in throwExceptionIntoGenerator
+    return g.throw(self.type, self.value, self.tb)
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\core\downloader\middleware.py", line 54, in process_request
+    return (yield download_func(request=request, spider=spider))
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\twisted\internet\defer.py", line 1248, in adapt
+    extracted: _SelfResultT | Failure = result.result()
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy_playwright\_utils.py", line 120, in _handle_coro
+    future.set_result(await coro)
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy_playwright\handler.py", line 378, in _download_request
+    return await self._download_request_with_retry(request=request, spider=spider)
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy_playwright\handler.py", line 397, in _download_request_with_retry
+    page = await self._create_page(request=request, spider=spider)
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy_playwright\handler.py", line 303, in _create_page
+    page = await ctx_wrapper.context.new_page()
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\playwright\async_api\_generated.py", line 12767, in new_page
+    return mapping.from_impl(await self._impl_obj.new_page())
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\playwright\_impl\_browser_context.py", line 326, in new_page
+    return from_channel(await self._channel.send("newPage"))
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\playwright\_impl\_connection.py", line 59, in send
+    return await self._connection.wrap_api_call(
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\playwright\_impl\_connection.py", line 520, in wrap_api_call
+    raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+Exception: BrowserContext.new_page: Connection closed while reading from the driver
+2024-11-11 16:51:31 [scrapy.core.scraper] ERROR: Error downloading <GET https://bw.sggw.edu.pl/info/author/WULSab1869f2fc1e4d8aa120327721d95ef7?r=author&tab=&title=Person%2Bprofile%2B%25E2%2580%2593%2BAgnieszka%2BSkarzy%25C5%2584ska%2B%25E2%2580%2593%2BWarsaw%2BUniversity%2Bof%2BLife%2BSciences%2B-%2BSGGW&lang=en>
+Traceback (most recent call last):
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\twisted\internet\defer.py", line 1996, in _inlineCallbacks
+    result = context.run(
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\twisted\python\failure.py", line 519, in throwExceptionIntoGenerator
+    return g.throw(self.type, self.value, self.tb)
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy\core\downloader\middleware.py", line 54, in process_request
+    return (yield download_func(request=request, spider=spider))
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\twisted\internet\defer.py", line 1248, in adapt
+    extracted: _SelfResultT | Failure = result.result()
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy_playwright\_utils.py", line 120, in _handle_coro
+    future.set_result(await coro)
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy_playwright\handler.py", line 378, in _download_request
+    return await self._download_request_with_retry(request=request, spider=spider)
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy_playwright\handler.py", line 397, in _download_request_with_retry
+    page = await self._create_page(request=request, spider=spider)
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\scrapy_playwright\handler.py", line 303, in _create_page
+    page = await ctx_wrapper.context.new_page()
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\playwright\async_api\_generated.py", line 12767, in new_page
+    return mapping.from_impl(await self._impl_obj.new_page())
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\playwright\_impl\_browser_context.py", line 326, in new_page
+    return from_channel(await self._channel.send("newPage"))
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\playwright\_impl\_connection.py", line 59, in send
+    return await self._connection.wrap_api_call(
+  File "C:\Users\Kamil\anaconda3\envs\WebScraping\Lib\site-packages\playwright\_impl\_connection.py", line 520, in wrap_api_call
+    raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+Exception: BrowserContext.new_page: Connection closed while reading from the driver

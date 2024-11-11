@@ -13,7 +13,8 @@ SPIDER_MODULES = ["sggwScraper.spiders"]
 NEWSPIDER_MODULE = "sggwScraper.spiders"
 
 #Playwright settings
-PLAYWRIGHT_LAUNCH_OPTIONS={"headless": True}
+PLAYWRIGHT_LAUNCH_OPTIONS={"headless": False}
+PLAYWRIGHT_BROWSER_TYPE="chromium"
 DOWNLOAD_HANDLERS = {
     "http": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
     "https": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
@@ -28,13 +29,24 @@ TWISTED_REACTOR = "twisted.internet.asyncioreactor.AsyncioSelectorReactor"
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = False
 
+
+RETRY_ENABLED = True
+RETRY_TIMES = 3
+PLAYWRIGHT_DEFAULT_NAVIGATION_TIMEOUT = 600000
+
+
+LOG_ENABLED = True
+LOG_LEVEL = 'ERROR'  # Zapisuj tylko błędy, lub użyj 'DEBUG'/'INFO' dla bardziej szczegółowych logów
+LOG_FILE = "scrapy_errors.log"  # Plik, do którego będą zapisywane logi
+
+
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 #CONCURRENT_REQUESTS = 32
 
 # Configure a delay for requests for the same website (default: 0)
 # See https://docs.scrapy.org/en/latest/topics/settings.html#download-delay
 # See also autothrottle settings and docs
-#DOWNLOAD_DELAY = 3
+DOWNLOAD_DELAY = 3
 # The download delay setting will honor only one of:
 #CONCURRENT_REQUESTS_PER_DOMAIN = 16
 #CONCURRENT_REQUESTS_PER_IP = 16
