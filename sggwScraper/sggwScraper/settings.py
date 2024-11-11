@@ -31,6 +31,7 @@ ROBOTSTXT_OBEY = False
 
 
 RETRY_ENABLED = True
+RETRY_HTTP_CODES = [500]
 RETRY_TIMES = 3
 PLAYWRIGHT_DEFAULT_NAVIGATION_TIMEOUT = 600000
 
@@ -46,7 +47,7 @@ LOG_FILE = "scrapy_errors.log"  # Plik, do którego będą zapisywane logi
 # Configure a delay for requests for the same website (default: 0)
 # See https://docs.scrapy.org/en/latest/topics/settings.html#download-delay
 # See also autothrottle settings and docs
-DOWNLOAD_DELAY = 3
+DOWNLOAD_DELAY = 1
 # The download delay setting will honor only one of:
 #CONCURRENT_REQUESTS_PER_DOMAIN = 16
 #CONCURRENT_REQUESTS_PER_IP = 16

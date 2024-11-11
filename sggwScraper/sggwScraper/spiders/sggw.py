@@ -17,8 +17,6 @@ class SggwSpider(scrapy.Spider):
     allowed_domains = ["bw.sggw.edu.pl"]
     start_urls = ["https://bw.sggw.edu.pl"]
 
-    
-   
 
     def parse(self, response):
         disciplines=response.css('a.omega-discipline::text').getall()
@@ -94,7 +92,7 @@ class SggwSpider(scrapy.Spider):
             yield organization
 
         
-        total_pages=50#int(response.css('span.entitiesDataListTotalPages::text').get())
+        total_pages=0#int(response.css('span.entitiesDataListTotalPages::text').get())
         #get scientist links from the page
         current_page=1
         while current_page<=total_pages:
@@ -175,15 +173,21 @@ class SggwSpider(scrapy.Spider):
 
         
         try:
-            await page.wait_for_selector('div.bibliometricsPanel>ul.ul-element-wcag>li:nth-child(1)>a', state='visible')
-            scientist['h_index']=response.css('div.bibliometricsPanel>ul.ul-element-wcag>li:nth-child(1)>a::text').get()
+            await page.wait_for_selector('div.bibliometricsPanel>ul.ul-element-wcag>li.hIndexItem>a', state='visible')
+            scientist['h_index_scopus']=response.xpath('//li[@class="hIndexItem"][span[contains(text(), "Scopus")]]//a/text()').get() or 0
         except:
-            scientist['h_index']=0
+            scientist['h_index_scopus']=0
 
         try:
-            await page.wait_for_selector('div.achievementsTable ul.ul-element-wcag>li:nth-child(1)>div.achievmentResultListLink>a', state='visible')
-            pub_count=response.css('div.achievementsTable ul.ul-element-wcag>li:nth-child(1)>div.achievmentResultListLink>a::text').get()
-            scientist['publication_count']=pub_count
+            await page.wait_for_selector('div.bibliometricsPanel>ul.ul-element-wcag>li.hIndexItem>a', state='visible')
+            scientist['h_index_wos']=response.xpath('//li[@class="hIndexItem"][span[contains(text(), "WoS")]]//a/text()').get() or 0
+        except:
+            scientist['h_index_wos']=0
+
+        try:
+            await page.wait_for_selector('div.achievementsTable ul.ul-element-wcag>li>div.achievmentResultListLink>a', state='visible')
+            pub_count=response.xpath('//li[contains(@class, "li-element-wcag")][span[@class="achievementName" and contains(text(), "Publications")]]//a/text()').get()
+            scientist['publication_count']=pub_count or 0
         except:
             scientist['publication_count']=0
 
@@ -197,7 +201,7 @@ class SggwSpider(scrapy.Spider):
         page = response.meta['playwright_page']
         
         bw_url='https://bw.sggw.edu.pl'
-        total_pages=0#int(response.css('span.entitiesDataListTotalPages::text').get().replace(',',''))
+        total_pages=50#int(response.css('span.entitiesDataListTotalPages::text').get().replace(',',''))
 
         current_page=1
         while current_page<=total_pages:
@@ -210,7 +214,8 @@ class SggwSpider(scrapy.Spider):
                     playwright_include_page=True,
                     playwright_page_methods =[
                         PageMethod('wait_for_selector', 'div.publicationShortInfo', state='visible'),
-                        PageMethod('wait_for_selector', 'dl.table2ColsContainer dt', state='visible')
+                        PageMethod('wait_for_selector', 'dl.table2ColsContainer dt', state='visible'),
+                        PageMethod('wait_for_selector', 'dl.table2ColsContainer dd', state='visible')
                         ],
                     errback=self.errback
                 ))
@@ -220,8 +225,8 @@ class SggwSpider(scrapy.Spider):
                 next_button_selector = ".ui-paginator-next.ui-state-default.ui-corner-all"
                 await page.wait_for_selector(next_button_selector, state="visible")
                 await page.click(next_button_selector)
-                await page.wait_for_timeout(400)
-                await page.wait_for_selector('ul.ui-dataview-list-container li.ui-dataview-row')
+                await page.wait_for_timeout(1000)
+                await page.wait_for_selector('ul.ui-dataview-list-container li.ui-dataview-row>div>div.entity-row-heading-wrapper>h5>a')
                 content = await page.content()
                 response = response.replace(body=content)
                 current_page+=1
@@ -233,32 +238,49 @@ class SggwSpider(scrapy.Spider):
     async def parse_publication(self, response):
         page = response.meta['playwright_page']
 
-        await page.wait_for_timeout(200)
-        authors_selector = response.css('div.authorList div.authorListElement a')
+        await page.wait_for_timeout(400)
         authors=[]
-
-        for author in authors_selector:
-            authors.append(author.css('span.authorSimple>span::text').getall())
+        try:
+            await page.wait_for_selector('div.authorList div.authorListElement a')
+            authors_selector = response.css('div.authorList div.authorListElement a')
+            for author in authors_selector:
+                authors.append(author.css('span.authorSimple>span::text').getall())
+        except:
+            authors=[]
 
         publication=publicationItem()
 
-        title=response.css('div.publicationShortInfo>h2::text').get()
-        if title:
+        
+        try:
+            await page.wait_for_selector('div.publicationShortInfo>h2', state='visible')
+            title=response.css('div.publicationShortInfo>h2::text').get()
             publication['title']=title
-        else:
+        except:
             publication['title']=''
 
-        journal=response.xpath('//*[@id="j_id_3_1q_1_1_1a_5_3_1_1:0:j_id_3_1q_1_1_1a_5_3_1_5_1"]/text()').get()
+        journal=response.xpath('//dl[contains(@class, "table2ColsContainer")]//dt[span[contains(text(), "Journal")]]/following-sibling::dd[1]//a/text()').get()
+        publisher=response.xpath('//dl[contains(@class, "table2ColsContainer")]//dt[span[contains(text(), "Publisher")]]/following-sibling::dd[1]//a/span/span/text()').get()
         if journal:
             publication['journal']=journal
+        elif publisher:
+            publication['journal']=publisher
         else:
             publication['journal']=''
+        
+            
 
-        publication_date= response.xpath('//dl[contains(@class, "table2ColsContainer")]//dt[span[contains(text(), "Issue year")]]/following-sibling::dd[1]//text()').get()
+        publication_date= response.xpath('//dl[contains(@class, "table2ColsContainer")]//dt[span[contains(text(), "Issue year")]]/following-sibling::dd[1]/text()').get()
+        if publication_date:
+            publication_date=response.xpath('//dl[contains(@class, "table2ColsContainer")]//dt[span[contains(text(), "Issue year")]]/following-sibling::dd[1]/text()').get().strip()
+        
+        publication_date_div= response.xpath('//dl[contains(@class, "table2ColsContainer")]//dt[span[contains(text(), "Issue year")]]/following-sibling::dd[1]/div/text()').get()
+        
         if publication_date:
             publication['publication_date']=publication_date
+        elif publication_date_div:
+            publication['publication_date']=publication_date_div
         else:
-            publication['publication_date']=''
+            publication['publication_date']=0
 
         citations_count=response.xpath('//dt[span/text()="Publication indicators"]/following-sibling::dd[1]/ul/li[1]/a/text()').re_first(r'=\s*(\d+)')
         if citations_count:
