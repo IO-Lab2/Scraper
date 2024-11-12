@@ -17,7 +17,7 @@ class ScientistItem(scrapy.Item):
     h_index_wos = scrapy.Field()
     #citations_count = scrapy.Field()
     publication_count = scrapy.Field()
-    #ministerial_score = scrapy.Field()
+    ministerial_score = scrapy.Field()
 
     
 

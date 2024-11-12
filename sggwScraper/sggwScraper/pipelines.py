@@ -29,18 +29,34 @@ class SggwscraperPipeline:
                     adapter[field_name]=value.strip()
                 if isinstance(value, str) and try_parse_int(value):
                     adapter[field_name]=int(value)
+                if isinstance(value, list):
+                    for v in value:
+                        if isinstance(v, str) and try_parse_int(v):
+                            adapter[field_name]=[v.strip() if isinstance(v, str) else v for v in value]
+                            
 
         
 
         if isinstance(item, ScientistItem):
             field_names=adapter.field_names()
-            clean_str_int(field_names, adapter)
 
-            value=adapter.get('academic_title')
-            adapter['academic_title']=value.strip(', ')
+            academic_title=adapter.get('academic_title')
+            adapter['academic_title']=academic_title.strip(', ')
+            ministerial_score=adapter.get('ministerial_score')
+            if isinstance(ministerial_score, str):
+                adapter['ministerial_score']=ministerial_score.replace(',','')
+            clean_str_int(field_names, adapter)
 
         elif isinstance(item, publicationItem):
             field_names=adapter.field_names()
+            authors=adapter.get('authors')
+            clean_authors=[]
+
+            for i in range(len(authors)):
+                for k in range(len(authors[i])):
+                    if isinstance(authors[i][k], str):
+                        adapter['authors'][i][k]=authors[i][k].strip()
+
             clean_str_int(field_names, adapter)
 
         elif isinstance(item, organizationItem):

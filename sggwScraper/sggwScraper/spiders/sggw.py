@@ -60,12 +60,12 @@ class SggwSpider(scrapy.Spider):
         ))
 
         #redirect to Publications category
-        yield response.follow(categories['Publications'], callback=self.parse_publications_links,
+        yield response.follow(categories['Publications'], callback=self.parse_publication_page,
         meta=dict(
             playwright=True,
             playwright_include_page=True,
             playwright_page_methods =[
-                PageMethod('wait_for_selector', 'div.entity-row-heading-wrapper h5 a')
+                PageMethod('wait_for_selector', 'span.entitiesDataListTotalPages', state='visible')
                 ],
             errback=self.errback
         ))
@@ -113,7 +113,7 @@ class SggwSpider(scrapy.Spider):
                 next_button_selector = ".ui-paginator-next.ui-state-default.ui-corner-all"
                 await page.wait_for_selector(next_button_selector, state="visible")
                 await page.click(next_button_selector)
-                await page.wait_for_timeout(400)
+                await page.wait_for_timeout(600)
                 #await page.wait_for_selector('a.authorNameLink')
                 
                 content = await page.content()
@@ -191,47 +191,65 @@ class SggwSpider(scrapy.Spider):
         except:
             scientist['publication_count']=0
 
+        try:
+            ministerial_score = await response.meta['playwright_page'].evaluate('''() => {
+            const elements = document.querySelectorAll('ul.ul-element-wcag.bibliometric-data-list li');
+            for (let element of elements) {
+                if (element.textContent.includes("Total ministerial score")) {
+                    const scoreElement = element.querySelector('div');
+                    return scoreElement ? scoreElement.textContent.trim() : null;
+                }
+            }
+            return null;
+            }''')
+            scientist['ministerial_score']=ministerial_score or 0
+        except:
+            scientist['ministerial_score']=0
+
         yield scientist
         await asyncio.sleep(0.1)
         await page.close()
         
+    async def parse_publication_page(self, response):
+        page = response.meta['playwright_page']
+        total_pages = 4#int(response.css('span.entitiesDataListTotalPages::text').get().replace(',', ''))
 
+        #Generate requests for each page based on the total number of pages
+        for page_number in range(1, total_pages + 1):
+            page_url = f'https://bw.sggw.edu.pl/globalResultList.seam?r=publication&tab=PUBLICATION&lang=en&p=hgu&pn={page_number}'
+            yield scrapy.Request(url=page_url,
+                callback=self.parse_publications_links,
+                meta=dict(
+                    playwright=True, 
+                    playwright_include_page=True,
+                    playwright_page_methods=[
+                        PageMethod('wait_for_selector', 'div.entity-row-heading-wrapper h5 a')
+                        ],
+                    errback=self.errback
+            ))
+        
+        await page.close()
         
     async def parse_publications_links(self, response):
         page = response.meta['playwright_page']
         
         bw_url='https://bw.sggw.edu.pl'
-        total_pages=50#int(response.css('span.entitiesDataListTotalPages::text').get().replace(',',''))
+        total_pages=int(response.css('span.entitiesDataListTotalPages::text').get().replace(',',''))
 
-        current_page=1
-        while current_page<=total_pages:
-            publications_urls=response.css('div.entity-row-heading-wrapper>h5>a::attr(href)').getall()
+        publications_urls=response.css('div.entity-row-heading-wrapper>h5>a::attr(href)').getall()
 
-            for pub in publications_urls:
-                yield response.follow(bw_url+pub, callback=self.parse_publication,
-                    meta=dict(
-                    playwright=True,
-                    playwright_include_page=True,
-                    playwright_page_methods =[
-                        PageMethod('wait_for_selector', 'div.publicationShortInfo', state='visible'),
-                        PageMethod('wait_for_selector', 'dl.table2ColsContainer dt', state='visible'),
-                        PageMethod('wait_for_selector', 'dl.table2ColsContainer dd', state='visible')
-                        ],
-                    errback=self.errback
+        for pub in publications_urls:
+            yield response.follow(bw_url+pub, callback=self.parse_publication,
+                meta=dict(
+                playwright=True,
+                playwright_include_page=True,
+                playwright_page_methods =[
+                    PageMethod('wait_for_selector', 'div.publicationShortInfo', state='visible'),
+                    PageMethod('wait_for_selector', 'dl.table2ColsContainer dt', state='visible'),
+                    PageMethod('wait_for_selector', 'dl.table2ColsContainer dd', state='visible')
+                    ],
+                errback=self.errback
                 ))
-            
-            #next page button clicker
-            if current_page<total_pages:
-                next_button_selector = ".ui-paginator-next.ui-state-default.ui-corner-all"
-                await page.wait_for_selector(next_button_selector, state="visible")
-                await page.click(next_button_selector)
-                await page.wait_for_timeout(1000)
-                await page.wait_for_selector('ul.ui-dataview-list-container li.ui-dataview-row>div>div.entity-row-heading-wrapper>h5>a')
-                content = await page.content()
-                response = response.replace(body=content)
-                current_page+=1
-            else:
-                break
         await page.close()
 
 
