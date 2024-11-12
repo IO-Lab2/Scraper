@@ -73,6 +73,7 @@ ROBOTSTXT_OBEY = False
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
+    "punktoza.pipelines.NameFilterPipeline" : 100,
     "punktoza.pipelines.PunktozaPipeline": 300,
 }
 

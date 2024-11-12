@@ -27,23 +27,21 @@ class PunktozaSpiderSpider(scrapy.Spider):
         page_counter = int(response.css("ul.pagination li.paginate_button.page-item a[data-dt-idx='7']::text").get())
         journals = JournalItem()
 
-        for i in range(2):
-            # Check if table's page is filled with articles
-            section_name = response.css("tr.dtrg-group.dtrg-start.dtrg-level-0 th::text").get()
-            if section_name != 'Czasopismo': 
-                continue
-            
+        # Check if table's page is filled with articles
+        for i in range(page_counter):
+
             # Loop over rows in data table
             table_rows = response.css("table#DataTables_Table_0 tbody tr.even, table#DataTables_Table_0 tbody tr.odd")
             for row in table_rows:
                 journal_name = row.css('td.dt-head-center.dt-head-nowrap.dtr-control a::text').get()
                 if_points = row.css("td.dt-right.dt-head-center.dt-head-nowrap::text").get() + row.css('td.dt-right.dt-head-center.dt-head-nowrap span::text').get()
 
+                if journal_name and if_points:
                 # Store and yield scraped data
-                journals["name"] = journal_name
-                journals["if_points"] = if_points
+                    journals["name"] = journal_name
+                    journals["if_points"] = if_points
+                    yield journals
 
-                yield journals
             # Click pagination's next page button
             await page.click("li.paginate_button.page-item.next a[data-dt-idx='8']")
 
