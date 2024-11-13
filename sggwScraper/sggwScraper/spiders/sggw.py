@@ -33,7 +33,7 @@ class SggwSpider(scrapy.Spider):
         categories={name: bw_url+link for name, link in zip(categories_names, categories_links)}
 
         #redirect to People category
-        yield response.follow(categories['People'], callback=self.parse_scientist_links,
+        yield response.follow(categories['People'], callback=self.parse_people_page,
         meta=dict(
             playwright=True,
             playwright_include_page=True,
@@ -48,7 +48,7 @@ class SggwSpider(scrapy.Spider):
                                     for (const button of buttons) {
                                         if (button.getAttribute('aria-expanded') === 'false') {
                                             await button.click();
-                                            await new Promise(r => setTimeout(r, 150));  // odczekanie po kliknięciu
+                                            await new Promise(r => setTimeout(r, 150));  // timeout to wait for the animation
                                         }
                                     }
                                 };
@@ -70,11 +70,8 @@ class SggwSpider(scrapy.Spider):
             errback=self.errback
         ))
         
-
-    async def parse_scientist_links(self, response):
+    async def parse_people_page(self, response):
         page = response.meta['playwright_page']
-       
-        bw_url='https://bw.sggw.edu.pl'
         #filters section
         organizations=response.css('div#afftreemain>div#groupingPanel>ul.ui-tree-container>li>ul.ui-treenode-children>li')
         university=response.css('div#afftreemain>div#groupingPanel>ul.ui-tree-container>li>div.ui-treenode-content div.ui-treenode-label>span>span::text').get()
@@ -92,46 +89,46 @@ class SggwSpider(scrapy.Spider):
             yield organization
 
         
-        total_pages=0#int(response.css('span.entitiesDataListTotalPages::text').get())
-        #get scientist links from the page
-        current_page=1
-        while current_page<=total_pages:
-            authors_links=response.css('a.authorNameLink::attr(href)').getall()
-            #redirect to every scientist profile
-            for author in authors_links:
-                yield response.follow(bw_url+author, callback=self.parse_scientist,
-                    meta=dict(
-                    playwright=True,
+        total_pages=50#int(response.css('span.entitiesDataListTotalPages::text').get())
+
+        #Generate requests for each page based on the total number of pages
+        for page_number in range(1, total_pages + 1):
+            page_url = f'https://bw.sggw.edu.pl/globalResultList.seam?q=&oa=false&r=author&tab=PEOPLE&conversationPropagation=begin&lang=en&qp=openAccess%3Dfalse&p=xyz&pn={page_number}'
+            yield scrapy.Request(url=page_url,
+                callback=self.parse_scientist_links,
+                meta=dict(
+                    playwright=True, 
                     playwright_include_page=True,
-                    playwright_page_methods =[
-                        PageMethod('wait_for_selector', 'div.authorProfileBasicInfoPanel')
+                    playwright_page_methods=[
+                        PageMethod('wait_for_selector', 'a.authorNameLink', state='visible')
                         ],
                     errback=self.errback
-                ))
-            #next page button clicker
-            if current_page<total_pages:
-                next_button_selector = ".ui-paginator-next.ui-state-default.ui-corner-all"
-                await page.wait_for_selector(next_button_selector, state="visible")
-                await page.click(next_button_selector)
-                await page.wait_for_timeout(600)
-                #await page.wait_for_selector('a.authorNameLink')
-                
-                content = await page.content()
-                response = response.replace(body=content)
-                current_page+=1
-            else:
-                break
-                
+            ))
         
-            
-       
+        await page.close()
 
+    async def parse_scientist_links(self, response):
+        page = response.meta['playwright_page']
+       
+        bw_url='https://bw.sggw.edu.pl'
+        await page.wait_for_selector('a.authorNameLink', state='visible')
+        await page.wait_for_load_state('domcontentloaded')
+        authors_links=response.css('a.authorNameLink::attr(href)').getall()
+        #redirect to every scientist profile
+        for author in authors_links:
+            yield scrapy.Request(bw_url+author, callback=self.parse_scientist,
+                meta=dict(
+                playwright=True,
+                playwright_include_page=True,
+                playwright_page_methods =[
+                    PageMethod('wait_for_selector', 'div.authorProfileBasicInfoPanel', state='visible'),
+                    ],
+                errback=self.errback
+            ))
+                
         await asyncio.sleep(0.1)
         await page.close()
         
-        
-
-
     async def parse_scientist(self, response):
         '''
             Scrapes scientist profile page
@@ -139,8 +136,8 @@ class SggwSpider(scrapy.Spider):
         page = response.meta['playwright_page']
 
         scientist=ScientistItem()
-        
-        await page.wait_for_timeout(200)
+        await page.wait_for_load_state('domcontentloaded')
+        await page.wait_for_timeout(500)
 
         personal_data=response.css('div.authorProfileBasicInfoPanel')
         try:
@@ -192,6 +189,7 @@ class SggwSpider(scrapy.Spider):
             scientist['publication_count']=0
 
         try:
+            await page.wait_for_timeout(1000)
             ministerial_score = await response.meta['playwright_page'].evaluate('''() => {
             const elements = document.querySelectorAll('ul.ul-element-wcag.bibliometric-data-list li');
             for (let element of elements) {
@@ -202,17 +200,20 @@ class SggwSpider(scrapy.Spider):
             }
             return null;
             }''')
-            scientist['ministerial_score']=ministerial_score or 0
+            if '—' not in ministerial_score:
+                scientist['ministerial_score']=ministerial_score
+            else:
+                scientist['ministerial_score']=0
         except:
             scientist['ministerial_score']=0
 
         yield scientist
-        await asyncio.sleep(0.1)
+        await asyncio.sleep(0.2)
         await page.close()
         
     async def parse_publication_page(self, response):
         page = response.meta['playwright_page']
-        total_pages = 4#int(response.css('span.entitiesDataListTotalPages::text').get().replace(',', ''))
+        total_pages = 0#int(response.css('span.entitiesDataListTotalPages::text').get().replace(',', ''))
 
         #Generate requests for each page based on the total number of pages
         for page_number in range(1, total_pages + 1):
