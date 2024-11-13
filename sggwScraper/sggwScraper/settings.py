@@ -42,7 +42,7 @@ LOG_FILE = "scrapy_errors.log"  # Plik, do którego będą zapisywane logi
 
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
-#CONCURRENT_REQUESTS = 32
+CONCURRENT_REQUESTS = 5
 
 # Configure a delay for requests for the same website (default: 0)
 # See https://docs.scrapy.org/en/latest/topics/settings.html#download-delay
@@ -86,7 +86,8 @@ DOWNLOADER_MIDDLEWARES = {
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
-    "sggwScraper.pipelines.SggwscraperPipeline": 1,
+    "sggwScraper.pipelines.SggwscraperPipeline": 700,
+    'sggwScraper.pipelines.SaveToDataBase': 800,
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)

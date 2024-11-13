@@ -89,11 +89,12 @@ class SggwSpider(scrapy.Spider):
             yield organization
 
         
-        total_pages=50#int(response.css('span.entitiesDataListTotalPages::text').get())
+        total_pages=40#int(response.css('span.entitiesDataListTotalPages::text').get())
 
         #Generate requests for each page based on the total number of pages
         for page_number in range(1, total_pages + 1):
             page_url = f'https://bw.sggw.edu.pl/globalResultList.seam?q=&oa=false&r=author&tab=PEOPLE&conversationPropagation=begin&lang=en&qp=openAccess%3Dfalse&p=xyz&pn={page_number}'
+            print(page_url)
             yield scrapy.Request(url=page_url,
                 callback=self.parse_scientist_links,
                 meta=dict(
@@ -104,6 +105,8 @@ class SggwSpider(scrapy.Spider):
                         ],
                     errback=self.errback
             ))
+            await asyncio.sleep(1)
+            
         
         await page.close()
 
@@ -111,6 +114,7 @@ class SggwSpider(scrapy.Spider):
         page = response.meta['playwright_page']
        
         bw_url='https://bw.sggw.edu.pl'
+        await page.wait_for_timeout(3000)
         await page.wait_for_selector('a.authorNameLink', state='visible')
         await page.wait_for_load_state('domcontentloaded')
         authors_links=response.css('a.authorNameLink::attr(href)').getall()
@@ -189,7 +193,7 @@ class SggwSpider(scrapy.Spider):
             scientist['publication_count']=0
 
         try:
-            await page.wait_for_timeout(1000)
+            await page.wait_for_timeout(5000)
             ministerial_score = await response.meta['playwright_page'].evaluate('''() => {
             const elements = document.querySelectorAll('ul.ul-element-wcag.bibliometric-data-list li');
             for (let element of elements) {
@@ -206,6 +210,8 @@ class SggwSpider(scrapy.Spider):
                 scientist['ministerial_score']=0
         except:
             scientist['ministerial_score']=0
+
+        scientist['citation_count']=0
 
         yield scientist
         await asyncio.sleep(0.2)
@@ -252,7 +258,6 @@ class SggwSpider(scrapy.Spider):
                 errback=self.errback
                 ))
         await page.close()
-
 
     async def parse_publication(self, response):
         page = response.meta['playwright_page']
@@ -312,8 +317,6 @@ class SggwSpider(scrapy.Spider):
         await asyncio.sleep(0.1)
         await page.close()
             
-    
-        
     async def errback(self, failure):
         self.logger.error(f"Error loading {failure.request.url}: {repr(failure)}")
     
