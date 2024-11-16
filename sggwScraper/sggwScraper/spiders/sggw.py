@@ -1,3 +1,4 @@
+import time
 import scrapy
 import playwright
 import asyncio
@@ -33,7 +34,7 @@ class SggwSpider(scrapy.Spider):
         categories={name: bw_url+link for name, link in zip(categories_names, categories_links)}
 
         #redirect to People category
-        yield response.follow(categories['People'], callback=self.parse_people_page,
+        yield scrapy.Request(categories['People'], callback=self.parse_people_page,
         meta=dict(
             playwright=True,
             playwright_include_page=True,
@@ -94,9 +95,9 @@ class SggwSpider(scrapy.Spider):
         #Generate requests for each page based on the total number of pages
         for page_number in range(1, total_pages + 1):
             page_url = f'https://bw.sggw.edu.pl/globalResultList.seam?q=&oa=false&r=author&tab=PEOPLE&conversationPropagation=begin&lang=en&qp=openAccess%3Dfalse&p=xyz&pn={page_number}'
-            print(page_url)
+            #print(page_url)
             yield scrapy.Request(url=page_url,
-                callback=self.parse_scientist_links,
+                callback=self.parse_scientist_links, dont_filter=True,
                 meta=dict(
                     playwright=True, 
                     playwright_include_page=True,
@@ -105,22 +106,26 @@ class SggwSpider(scrapy.Spider):
                         ],
                     errback=self.errback
             ))
-            await asyncio.sleep(1)
+            await asyncio.sleep(0.5)
+            if page_number%5==0:
+                await asyncio.sleep(20)
             
         
-        await page.close()
+        
 
     async def parse_scientist_links(self, response):
         page = response.meta['playwright_page']
-       
+
         bw_url='https://bw.sggw.edu.pl'
-        await page.wait_for_timeout(3000)
-        await page.wait_for_selector('a.authorNameLink', state='visible')
+        
+        await asyncio.sleep(3)
+        print(response.url)
+        await page.wait_for_selector('a.authorNameLink', state='visible', timeout=5000)
         await page.wait_for_load_state('domcontentloaded')
         authors_links=response.css('a.authorNameLink::attr(href)').getall()
         #redirect to every scientist profile
         for author in authors_links:
-            yield scrapy.Request(bw_url+author, callback=self.parse_scientist,
+            yield response.follow(bw_url+author, callback=self.parse_scientist, dont_filter=True,
                 meta=dict(
                 playwright=True,
                 playwright_include_page=True,
@@ -129,9 +134,8 @@ class SggwSpider(scrapy.Spider):
                     ],
                 errback=self.errback
             ))
-                
-        await asyncio.sleep(0.1)
         await page.close()
+        
         
     async def parse_scientist(self, response):
         '''
@@ -140,12 +144,11 @@ class SggwSpider(scrapy.Spider):
         page = response.meta['playwright_page']
 
         scientist=ScientistItem()
-        await page.wait_for_load_state('domcontentloaded')
-        await page.wait_for_timeout(500)
+        
 
         personal_data=response.css('div.authorProfileBasicInfoPanel')
         try:
-            await page.wait_for_selector('div.authorProfileBasicInfoPanel>p', state='visible')
+            await page.wait_for_selector('div.authorProfileBasicInfoPanel>p', state='visible', timeout=100)
             name_title=personal_data.css('span.authorName::text').getall()
             scientist['first_name']= name_title[0]
             scientist['last_name']= name_title[1]
@@ -159,13 +162,13 @@ class SggwSpider(scrapy.Spider):
             scientist['academic_title']=''
 
         try:
-            await page.wait_for_selector('div.researchFieldsPanel ul.ul-element-wcag li span', state='visible')
+            await page.wait_for_selector('div.researchFieldsPanel ul.ul-element-wcag li span', state='visible', timeout=100)
             scientist['research_area']= response.css('div.researchFieldsPanel ul.ul-element-wcag li span::text').getall()
         except:
             scientist['research_area']=''
 
         try:
-            await page.wait_for_selector('p.authorContactInfoEmailContainer>a', state='visible')
+            await page.wait_for_selector('p.authorContactInfoEmailContainer>a', state='visible', timeout=100)
             scientist['email']= personal_data.css('p.authorContactInfoEmailContainer>a::text').get()
         except:
             scientist['email']=''
@@ -174,26 +177,27 @@ class SggwSpider(scrapy.Spider):
 
         
         try:
-            await page.wait_for_selector('div.bibliometricsPanel>ul.ul-element-wcag>li.hIndexItem>a', state='visible')
+            await page.wait_for_selector('div.bibliometricsPanel>ul.ul-element-wcag>li.hIndexItem>a', state='visible', timeout=100)
             scientist['h_index_scopus']=response.xpath('//li[@class="hIndexItem"][span[contains(text(), "Scopus")]]//a/text()').get() or 0
         except:
             scientist['h_index_scopus']=0
 
         try:
-            await page.wait_for_selector('div.bibliometricsPanel>ul.ul-element-wcag>li.hIndexItem>a', state='visible')
+            await page.wait_for_selector('div.bibliometricsPanel>ul.ul-element-wcag>li.hIndexItem>a', state='visible', timeout=100)
             scientist['h_index_wos']=response.xpath('//li[@class="hIndexItem"][span[contains(text(), "WoS")]]//a/text()').get() or 0
         except:
             scientist['h_index_wos']=0
 
         try:
-            await page.wait_for_selector('div.achievementsTable ul.ul-element-wcag>li>div.achievmentResultListLink>a', state='visible')
+            await page.wait_for_selector('div.achievementsTable ul.ul-element-wcag>li>div.achievmentResultListLink>a', state='visible', timeout=100)
             pub_count=response.xpath('//li[contains(@class, "li-element-wcag")][span[@class="achievementName" and contains(text(), "Publications")]]//a/text()').get()
             scientist['publication_count']=pub_count or 0
         except:
             scientist['publication_count']=0
-
+        
         try:
-            await page.wait_for_timeout(5000)
+            await page.wait_for_selector('ul.bibliometric-data-list li>span.indicatorName', state='visible', timeout=200)
+            await page.wait_for_timeout(8000)
             ministerial_score = await response.meta['playwright_page'].evaluate('''() => {
             const elements = document.querySelectorAll('ul.ul-element-wcag.bibliometric-data-list li');
             for (let element of elements) {
@@ -214,7 +218,7 @@ class SggwSpider(scrapy.Spider):
         scientist['citation_count']=0
 
         yield scientist
-        await asyncio.sleep(0.2)
+        
         await page.close()
         
     async def parse_publication_page(self, response):

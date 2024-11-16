@@ -33,7 +33,7 @@ ROBOTSTXT_OBEY = False
 RETRY_ENABLED = True
 RETRY_HTTP_CODES = [500]
 RETRY_TIMES = 3
-PLAYWRIGHT_DEFAULT_NAVIGATION_TIMEOUT = 600000
+PLAYWRIGHT_DEFAULT_NAVIGATION_TIMEOUT = 120000
 
 
 LOG_ENABLED = True
@@ -42,12 +42,12 @@ LOG_FILE = "scrapy_errors.log"  # Plik, do którego będą zapisywane logi
 
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
-CONCURRENT_REQUESTS = 5
+CONCURRENT_REQUESTS =10
 
 # Configure a delay for requests for the same website (default: 0)
 # See https://docs.scrapy.org/en/latest/topics/settings.html#download-delay
 # See also autothrottle settings and docs
-DOWNLOAD_DELAY = 1
+DOWNLOAD_DELAY = 0.2
 # The download delay setting will honor only one of:
 #CONCURRENT_REQUESTS_PER_DOMAIN = 16
 #CONCURRENT_REQUESTS_PER_IP = 16
@@ -73,9 +73,13 @@ DOWNLOAD_DELAY = 1
 # Enable or disable downloader middlewares
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 DOWNLOADER_MIDDLEWARES = {
-#    "sggwScraper.middlewares.SggwscraperDownloaderMiddleware": 543,
+    "sggwScraper.middlewares.SggwscraperDownloaderMiddleware": 543,
     'scrapy_user_agents.middlewares.RandomUserAgentMiddleware': 400,
+    #'rotating_proxies.middlewares.RotatingProxyMiddleware': 610,
+    #'rotating_proxies.middlewares.BanDetectionMiddleware': 620
 }
+
+
 
 # Enable or disable extensions
 # See https://docs.scrapy.org/en/latest/topics/extensions.html
@@ -87,7 +91,7 @@ DOWNLOADER_MIDDLEWARES = {
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
     "sggwScraper.pipelines.SggwscraperPipeline": 700,
-    'sggwScraper.pipelines.SaveToDataBase': 800,
+    #'sggwScraper.pipelines.SaveToDataBase': 800,
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)
