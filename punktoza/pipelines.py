@@ -26,11 +26,12 @@ class PunktozaPipeline:
         self.connection = psycopg.connect(host=hostname, user=username, password=password, dbname=database, port=port)
         self.cur = self.connection.cursor()
 
-    
     def process_item(self, item, spider):
         # Update impact factor points for every journal in the database
-        journal = item.get("name")
-        impact_factor = item.get("if_points")
+        adapter = ItemAdapter(item)
+
+        journal = adapter.get("name")
+        impact_factor = adapter.get("if_points")
 
         if journal and impact_factor:
             update_query = """
@@ -38,14 +39,19 @@ class PunktozaPipeline:
             SET impact_factor = %s
             WHERE journal = %s AND impact_factor IS NULL;
         """
-        try:
-            self.cur.execute(update_query, (impact_factor, journal))
-            self.connection.commit()    
-            spider.logger.info(f"Updated impact_factor for journal: {journal}")
+            try:
+                self.cur.execute(update_query, (impact_factor, journal))
+                self.connection.commit()    
+                spider.logger.info(f"Updated impact_factor for journal: {journal}")
 
-        except Exception as e:
-            spider.logger.error(f"Error while updating impact_factor for journal {journal}: {e}")
-            raise DropItem(f"Failed to update impact_factor for journal {journal}")
+            except Exception as e:
+                spider.logger.error(f"Error while updating impact_factor for journal {journal}: {e}")
+                raise DropItem(f"Failed to update impact_factor for journal {journal}")
+            
+        else:
+            missing_field = "journal" if not journal else "impact_factor"
+            spider.logger.warning(f"Item missing required field: {missing_field}")
+            raise DropItem(f"Missing {missing_field} for item: {adapter.asdict()}")
         
         return item
     
@@ -83,7 +89,9 @@ class NameFilterPipeline:
         #     raise DropItem("Item not in filtered journal names")
 
         # Check for item's journal name in database
-        journal = item.get("name")
+        adapter = ItemAdapter(item)
+
+        journal = adapter.get("name")
 
         if journal:
             check_query = """
@@ -102,6 +110,7 @@ class NameFilterPipeline:
                 spider.logger.error(f"Error while processing journal {journal}: {e}")
                 raise DropItem(f"Error processing item with journal {journal}")
             
+        spider.logger.warning("Item missing journal name")
         raise DropItem("Item missing journal name")
     
     def close_spider(self, spider):
