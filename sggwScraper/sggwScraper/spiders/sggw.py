@@ -1,4 +1,3 @@
-import time
 import scrapy
 import playwright
 import asyncio
@@ -9,7 +8,11 @@ from sggwScraper.items import ScientistItem, organizationItem, publicationItem
 
 logging.getLogger('asyncio').setLevel(logging.CRITICAL)
 
-
+def should_abort_request(request):
+    return (
+        request.resource_type == "image"
+        or ".jpg" in request.url
+    )
 
 
 class SggwSpider(scrapy.Spider):
@@ -17,6 +20,11 @@ class SggwSpider(scrapy.Spider):
 
     allowed_domains = ["bw.sggw.edu.pl"]
     start_urls = ["https://bw.sggw.edu.pl"]
+
+    custom_settings = {
+        'PLAYWRIGHT_ABORT_REQUEST': should_abort_request,
+
+    }
 
 
     def parse(self, response):
@@ -86,16 +94,17 @@ class SggwSpider(scrapy.Spider):
             cathedras = org.css('ul.ui-treenode-children li.ui-treenode-leaf div.ui-treenode-content div.ui-treenode-label span>span::text').getall()
             if cathedras:
                 organization['cathedras']=cathedras
+            else:
+                organization['cathedras']=[]
             
             yield organization
 
         
-        total_pages=40#int(response.css('span.entitiesDataListTotalPages::text').get())
+        total_pages=0#int(response.css('span.entitiesDataListTotalPages::text').get())
 
         #Generate requests for each page based on the total number of pages
         for page_number in range(1, total_pages + 1):
             page_url = f'https://bw.sggw.edu.pl/globalResultList.seam?q=&oa=false&r=author&tab=PEOPLE&conversationPropagation=begin&lang=en&qp=openAccess%3Dfalse&p=xyz&pn={page_number}'
-            #print(page_url)
             yield scrapy.Request(url=page_url,
                 callback=self.parse_scientist_links, dont_filter=True,
                 meta=dict(
@@ -106,36 +115,24 @@ class SggwSpider(scrapy.Spider):
                         ],
                     errback=self.errback
             ))
-            await asyncio.sleep(0.5)
-            if page_number%5==0:
-                await asyncio.sleep(20)
-            
+        await asyncio.sleep(0.2)
+        await page.close()
         
-        
-
     async def parse_scientist_links(self, response):
         page = response.meta['playwright_page']
 
         bw_url='https://bw.sggw.edu.pl'
-        
-        await asyncio.sleep(3)
-        print(response.url)
-        await page.wait_for_selector('a.authorNameLink', state='visible', timeout=5000)
-        await page.wait_for_load_state('domcontentloaded')
         authors_links=response.css('a.authorNameLink::attr(href)').getall()
         #redirect to every scientist profile
         for author in authors_links:
-            yield response.follow(bw_url+author, callback=self.parse_scientist, dont_filter=True,
+            yield scrapy.Request(bw_url+author, callback=self.parse_scientist, dont_filter=True,
                 meta=dict(
                 playwright=True,
                 playwright_include_page=True,
-                playwright_page_methods =[
-                    PageMethod('wait_for_selector', 'div.authorProfileBasicInfoPanel', state='visible'),
-                    ],
                 errback=self.errback
             ))
+        await asyncio.sleep(0.2)
         await page.close()
-        
         
     async def parse_scientist(self, response):
         '''
@@ -145,10 +142,9 @@ class SggwSpider(scrapy.Spider):
 
         scientist=ScientistItem()
         
-
         personal_data=response.css('div.authorProfileBasicInfoPanel')
         try:
-            await page.wait_for_selector('div.authorProfileBasicInfoPanel>p', state='visible', timeout=100)
+            #await page.wait_for_selector('div.authorProfileBasicInfoPanel>p', state='visible', timeout=300)
             name_title=personal_data.css('span.authorName::text').getall()
             scientist['first_name']= name_title[0]
             scientist['last_name']= name_title[1]
@@ -162,13 +158,13 @@ class SggwSpider(scrapy.Spider):
             scientist['academic_title']=''
 
         try:
-            await page.wait_for_selector('div.researchFieldsPanel ul.ul-element-wcag li span', state='visible', timeout=100)
+            #await page.wait_for_selector('div.researchFieldsPanel ul.ul-element-wcag li span', state='visible', timeout=100)
             scientist['research_area']= response.css('div.researchFieldsPanel ul.ul-element-wcag li span::text').getall()
         except:
             scientist['research_area']=''
 
         try:
-            await page.wait_for_selector('p.authorContactInfoEmailContainer>a', state='visible', timeout=100)
+            #await page.wait_for_selector('p.authorContactInfoEmailContainer>a', state='visible', timeout=100)
             scientist['email']= personal_data.css('p.authorContactInfoEmailContainer>a::text').get()
         except:
             scientist['email']=''
@@ -177,54 +173,64 @@ class SggwSpider(scrapy.Spider):
 
         
         try:
-            await page.wait_for_selector('div.bibliometricsPanel>ul.ul-element-wcag>li.hIndexItem>a', state='visible', timeout=100)
+            #await page.wait_for_selector('div.bibliometricsPanel>ul.ul-element-wcag>li.hIndexItem>a', state='visible', timeout=100)
             scientist['h_index_scopus']=response.xpath('//li[@class="hIndexItem"][span[contains(text(), "Scopus")]]//a/text()').get() or 0
         except:
             scientist['h_index_scopus']=0
 
         try:
-            await page.wait_for_selector('div.bibliometricsPanel>ul.ul-element-wcag>li.hIndexItem>a', state='visible', timeout=100)
+            #await page.wait_for_selector('div.bibliometricsPanel>ul.ul-element-wcag>li.hIndexItem>a', state='visible', timeout=100)
             scientist['h_index_wos']=response.xpath('//li[@class="hIndexItem"][span[contains(text(), "WoS")]]//a/text()').get() or 0
         except:
             scientist['h_index_wos']=0
 
         try:
-            await page.wait_for_selector('div.achievementsTable ul.ul-element-wcag>li>div.achievmentResultListLink>a', state='visible', timeout=100)
+            #await page.wait_for_selector('div.achievementsTable ul.ul-element-wcag>li>div.achievmentResultListLink>a', state='visible', timeout=100)
             pub_count=response.xpath('//li[contains(@class, "li-element-wcag")][span[@class="achievementName" and contains(text(), "Publications")]]//a/text()').get()
             scientist['publication_count']=pub_count or 0
         except:
             scientist['publication_count']=0
         
         try:
-            await page.wait_for_selector('ul.bibliometric-data-list li>span.indicatorName', state='visible', timeout=200)
-            await page.wait_for_timeout(8000)
-            ministerial_score = await response.meta['playwright_page'].evaluate('''() => {
-            const elements = document.querySelectorAll('ul.ul-element-wcag.bibliometric-data-list li');
-            for (let element of elements) {
-                if (element.textContent.includes("Total ministerial score")) {
-                    const scoreElement = element.querySelector('div');
-                    return scoreElement ? scoreElement.textContent.trim() : null;
-                }
-            }
-            return null;
-            }''')
-            if '—' not in ministerial_score:
-                scientist['ministerial_score']=ministerial_score
+            await page.wait_for_selector('ul.bibliometric-data-list li>span.indicatorName', state='visible', timeout=800)
+            if response.css('ul.bibliometric-data-list li>span.indicatorName'):
+                try:
+                    await page.wait_for_function(
+                                """() => {
+                                    const element = document.querySelector('div#j_id_3_1q_1_1_8_6n_a_2');
+                                    return element && element.textContent.trim().length > 0;
+                                }"""
+                            )
+                    ministerial_score= await page.evaluate('document.querySelector("div#j_id_3_1q_1_1_8_6n_a_2")?.textContent.trim()')
+                except:
+                    ministerial_score=0
+                    print(f'Blad w wait_for_function: {response.url}')
+                
+                
+                if '—' not in ministerial_score:
+                    scientist['ministerial_score']=ministerial_score
+                else:
+                    print(f'----{response.url}')
+                    scientist['ministerial_score']=0
             else:
+                print(f'Brak znacznika indicatorName: {response.url}')
                 scientist['ministerial_score']=0
-        except:
+        except:  
+            print(f'Cos sie zepsulo: {response.url}')   
             scientist['ministerial_score']=0
 
         scientist['citation_count']=0
 
         yield scientist
-        
-        await page.close()
+        await asyncio.sleep(0.2)
+        if not page.is_closed():
+            await page.close()
+
         
     async def parse_publication_page(self, response):
         page = response.meta['playwright_page']
-        total_pages = 0#int(response.css('span.entitiesDataListTotalPages::text').get().replace(',', ''))
-
+        total_pages = 10#int(response.css('span.entitiesDataListTotalPages::text').get().replace(',', ''))
+        
         #Generate requests for each page based on the total number of pages
         for page_number in range(1, total_pages + 1):
             page_url = f'https://bw.sggw.edu.pl/globalResultList.seam?r=publication&tab=PUBLICATION&lang=en&p=hgu&pn={page_number}'
@@ -245,7 +251,6 @@ class SggwSpider(scrapy.Spider):
         page = response.meta['playwright_page']
         
         bw_url='https://bw.sggw.edu.pl'
-        total_pages=int(response.css('span.entitiesDataListTotalPages::text').get().replace(',',''))
 
         publications_urls=response.css('div.entity-row-heading-wrapper>h5>a::attr(href)').getall()
 
@@ -254,6 +259,7 @@ class SggwSpider(scrapy.Spider):
                 meta=dict(
                 playwright=True,
                 playwright_include_page=True,
+                playwright_context="publication",
                 playwright_page_methods =[
                     PageMethod('wait_for_selector', 'div.publicationShortInfo', state='visible'),
                     PageMethod('wait_for_selector', 'dl.table2ColsContainer dt', state='visible'),
@@ -261,15 +267,16 @@ class SggwSpider(scrapy.Spider):
                     ],
                 errback=self.errback
                 ))
+        
         await page.close()
 
+    #need fixes
     async def parse_publication(self, response):
         page = response.meta['playwright_page']
 
-        await page.wait_for_timeout(400)
         authors=[]
         try:
-            await page.wait_for_selector('div.authorList div.authorListElement a')
+            await page.wait_for_selector('div.authorList div.authorListElement a', state='visible', timeout=300)
             authors_selector = response.css('div.authorList div.authorListElement a')
             for author in authors_selector:
                 authors.append(author.css('span.authorSimple>span::text').getall())
@@ -280,7 +287,7 @@ class SggwSpider(scrapy.Spider):
 
         
         try:
-            await page.wait_for_selector('div.publicationShortInfo>h2', state='visible')
+            await page.wait_for_selector('div.publicationShortInfo>h2', state='visible', timeout=300)
             title=response.css('div.publicationShortInfo>h2::text').get()
             publication['title']=title
         except:
@@ -293,22 +300,24 @@ class SggwSpider(scrapy.Spider):
         elif publisher:
             publication['journal']=publisher
         else:
-            publication['journal']=''
+            publication['journal']=None
         
             
+        
+        publication_date= response.xpath('//dl[contains(@class, "table2ColsContainer")]//dt[span[contains(text(), "Year of creation")]]/following-sibling::dd[1]/text()').get()
+        
+        publication_date_div= response.xpath('//dl[contains(@class, "table2ColsContainer")]//dt[span[contains(text(), "Year of creation")]]/following-sibling::dd[1]/div/text()').get()
 
-        publication_date= response.xpath('//dl[contains(@class, "table2ColsContainer")]//dt[span[contains(text(), "Issue year")]]/following-sibling::dd[1]/text()').get()
-        if publication_date:
-            publication_date=response.xpath('//dl[contains(@class, "table2ColsContainer")]//dt[span[contains(text(), "Issue year")]]/following-sibling::dd[1]/text()').get().strip()
+        publication_date2= response.xpath('//dl[contains(@class, "table2ColsContainer")]//dt[span[contains(text(), "Issue year")]]/following-sibling::dd[1]/text()').get()
         
-        publication_date_div= response.xpath('//dl[contains(@class, "table2ColsContainer")]//dt[span[contains(text(), "Issue year")]]/following-sibling::dd[1]/div/text()').get()
+        publication_date_div2= response.xpath('//dl[contains(@class, "table2ColsContainer")]//dt[span[contains(text(), "Issue year")]]/following-sibling::dd[1]/div/text()').get()
         
-        if publication_date:
+        if publication_date and publication_date!='0':
             publication['publication_date']=publication_date
-        elif publication_date_div:
+        elif publication_date_div and publication_date_div!='0':
             publication['publication_date']=publication_date_div
         else:
-            publication['publication_date']=0
+            publication['publication_date']=None
 
         citations_count=response.xpath('//dt[span/text()="Publication indicators"]/following-sibling::dd[1]/ul/li[1]/a/text()').re_first(r'=\s*(\d+)')
         if citations_count:
@@ -318,7 +327,7 @@ class SggwSpider(scrapy.Spider):
         publication['authors']=authors
 
         yield publication
-        await asyncio.sleep(0.1)
+        await asyncio.sleep(0.4)
         await page.close()
             
     async def errback(self, failure):

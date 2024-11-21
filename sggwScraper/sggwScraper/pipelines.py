@@ -5,6 +5,8 @@
 
 
 # useful for handling different item types with a single interface
+from datetime import date
+from turtle import pu
 import psycopg2
 from attrs import field
 from itemadapter import ItemAdapter
@@ -23,12 +25,12 @@ class SggwscraperPipeline:
             except ValueError:
                 return False
 
-        def clean_str_int(filed_names, adapter):
+        def clean_str_int(field_names, adapter):
             for field_name in field_names:
                 value=adapter.get(field_name)
                 if value and isinstance(value, str):
                     adapter[field_name]=value.strip()
-                if isinstance(value, str) and try_parse_int(value):
+                if isinstance(value, str) and try_parse_int(value) and field_name!='publication_date':
                     adapter[field_name]=int(value)
                 if isinstance(value, list):
                     for v in value:
@@ -64,6 +66,9 @@ class SggwscraperPipeline:
                         adapter['authors'][i][k]=authors[i][k].strip()
 
             clean_str_int(field_names, adapter)
+            pub_date=adapter.get('publication_date')
+            if pub_date:
+                adapter['publication_date']=pub_date+'-01-01'
 
         elif isinstance(item, organizationItem):
             field_names=adapter.field_names()
@@ -82,10 +87,22 @@ class SaveToDataBase:
             port="5432"
         )
         self.cursor = self.conn.cursor()
-        self.cursor.execute("""
-            DELETE FROM bibliometrics;
-            DELETE FROM scientists;
-                            """)
+        #DELETE FROM bibliometrics;
+        #DELETE FROM scientists;
+        """self.cursor.execute("""
+        """    DELETE FROM organizations;
+            DELETE FROM publications;
+            INSERT INTO
+            organizations (
+                name,
+                type
+                )
+                VALUES (
+                    'SGGW',
+                    'university'
+                    );
+            """#)
+        
 
     def close_spider(self, spider):
         # Commit any remaining data and close the connection when the spider finishes
@@ -97,7 +114,8 @@ class SaveToDataBase:
     def process_item(self, item, spider):
         
         adapter=ItemAdapter(item)
-        if isinstance(item, ScientistItem):
+        
+        if False:#isinstance(item, ScientistItem):
             self.cursor.execute("""
                 
                 INSERT INTO
@@ -157,6 +175,71 @@ class SaveToDataBase:
                     adapter['ministerial_score'],
                     scientis_id
                 ))
+        if isinstance(item, publicationItem):
+            self.cursor.execute("""
+                
+                INSERT INTO
+                publications (
+                    title,
+                    journal,
+                    publication_date,
+                    citations_count,
+                    journal_impact_factor
+                )
+                VALUES (
+                        %s,
+                        %s,
+                        %s,
+                        %s,
+                        %s
+                        );
+                """,
+                (
+                    adapter['title'],
+                    adapter['journal'],
+                    adapter['publication_date'],
+                    adapter['citations_count'],
+                    0,
+                ))
+            
+        if False:#isinstance(item, organizationItem):
+            org_type=['institute', 'cathedra']
+            
+            if adapter['institute']:
+                self.cursor.execute("""
+                    
+                    INSERT INTO
+                    organizations (
+                        name,
+                        type
+                    )
+                    VALUES (
+                            %s,
+                            %s
+                            );
+                    """,
+                    (
+                        adapter['institute'],
+                        org_type[0],
+                    ))
+            if adapter['cathedras']:
+                for cathedra in adapter['cathedras']:
+                    self.cursor.execute("""
+                
+                    INSERT INTO
+                    organizations (
+                        name,
+                        type
+                    )
+                    VALUES (
+                            %s,
+                            %s
+                            );
+                    """,
+                    (
+                        cathedra,
+                        org_type[1]
+                    ))
 
         return item
     

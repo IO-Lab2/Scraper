@@ -13,14 +13,14 @@ SPIDER_MODULES = ["sggwScraper.spiders"]
 NEWSPIDER_MODULE = "sggwScraper.spiders"
 
 #Playwright settings
+PLAYWRIGHT_MAX_CONTEXTS = 4
 PLAYWRIGHT_LAUNCH_OPTIONS={"headless": False}
-PLAYWRIGHT_BROWSER_TYPE="chromium"
+
 DOWNLOAD_HANDLERS = {
     "http": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
     "https": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
 }
 
-TWISTED_REACTOR = "twisted.internet.asyncioreactor.AsyncioSelectorReactor"
 
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
@@ -32,7 +32,7 @@ ROBOTSTXT_OBEY = False
 
 RETRY_ENABLED = True
 RETRY_HTTP_CODES = [500]
-RETRY_TIMES = 3
+RETRY_TIMES = 5
 PLAYWRIGHT_DEFAULT_NAVIGATION_TIMEOUT = 120000
 
 
@@ -40,14 +40,36 @@ LOG_ENABLED = True
 LOG_LEVEL = 'ERROR'  # Zapisuj tylko błędy, lub użyj 'DEBUG'/'INFO' dla bardziej szczegółowych logów
 LOG_FILE = "scrapy_errors.log"  # Plik, do którego będą zapisywane logi
 
+# Włączenie Autothrottle
+AUTOTHROTTLE_ENABLED = True
+
+# Początkowe opóźnienie między żądaniami
+AUTOTHROTTLE_START_DELAY = 0.5
+
+# Maksymalne opóźnienie w przypadku przeciążenia serwera
+AUTOTHROTTLE_MAX_DELAY = 2
+
+# Docelowa liczba żądań równoczesnych na serwer
+AUTOTHROTTLE_TARGET_CONCURRENCY = 7
+
+# Włączenie logowania, aby monitorować działanie Autothrottle
+AUTOTHROTTLE_DEBUG = True
+
+
+
+PLAYWRIGHT_CONTEXTS={
+    "people":{},
+    "publication":{}
+}
+
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
-CONCURRENT_REQUESTS =10
+#CONCURRENT_REQUESTS =32
 
 # Configure a delay for requests for the same website (default: 0)
 # See https://docs.scrapy.org/en/latest/topics/settings.html#download-delay
 # See also autothrottle settings and docs
-DOWNLOAD_DELAY = 0.2
+#DOWNLOAD_DELAY = 0.2
 # The download delay setting will honor only one of:
 #CONCURRENT_REQUESTS_PER_DOMAIN = 16
 #CONCURRENT_REQUESTS_PER_IP = 16
@@ -74,7 +96,7 @@ DOWNLOAD_DELAY = 0.2
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 DOWNLOADER_MIDDLEWARES = {
     "sggwScraper.middlewares.SggwscraperDownloaderMiddleware": 543,
-    'scrapy_user_agents.middlewares.RandomUserAgentMiddleware': 400,
+    'scrapy_user_agents.middlewares.RandomUserAgentMiddleware': 555,
     #'rotating_proxies.middlewares.RotatingProxyMiddleware': 610,
     #'rotating_proxies.middlewares.BanDetectionMiddleware': 620
 }
