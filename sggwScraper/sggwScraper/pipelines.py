@@ -5,10 +5,10 @@
 
 
 # useful for handling different item types with a single interface
-from datetime import date
-from turtle import pu
+import os
 import psycopg2
 from attrs import field
+from dotenv import load_dotenv
 from itemadapter import ItemAdapter
 from sggwScraper.items import ScientistItem, publicationItem, organizationItem
 
@@ -44,7 +44,8 @@ class SggwscraperPipeline:
             field_names=adapter.field_names()
 
             academic_title=adapter.get('academic_title')
-            adapter['academic_title']=academic_title.strip(', ')
+            if academic_title:
+                adapter['academic_title']=academic_title.strip(', ')
             ministerial_score=adapter.get('ministerial_score')
             if isinstance(ministerial_score, str):
                 adapter['ministerial_score']=ministerial_score.replace(',','')
@@ -79,19 +80,25 @@ class SggwscraperPipeline:
 
 class SaveToDataBase:
     def open_spider(self, spider):
+        load_dotenv()
         self.conn = psycopg2.connect(
-            dbname="postgres",
-            user="postgres",
-            password="&r6:a}$ryXVAh!n",
-            host="ioprojectdatabase.postgres.database.azure.com",
-            port="5432"
+            dbname=os.getenv("PGDATABASE"),
+            user=os.getenv("PGUSER"),
+            password=os.getenv("PGPASSWORD"),
+            host=os.getenv("PGHOST"),
+            port=os.getenv("PGPORT")
         )
         self.cursor = self.conn.cursor()
-        #DELETE FROM bibliometrics;
-        #DELETE FROM scientists;
-        """self.cursor.execute("""
-        """    DELETE FROM organizations;
+        
+        #DELETE FROM organizations;
+        '''
+        self.cursor.execute("""
+            DELETE FROM bibliometrics;
+            DELETE FROM scientists;
+            
+            
             DELETE FROM publications;
+            
             INSERT INTO
             organizations (
                 name,
@@ -101,8 +108,8 @@ class SaveToDataBase:
                     'SGGW',
                     'university'
                     );
-            """#)
-        
+            """)
+        '''
 
     def close_spider(self, spider):
         # Commit any remaining data and close the connection when the spider finishes
@@ -115,7 +122,7 @@ class SaveToDataBase:
         
         adapter=ItemAdapter(item)
         
-        if False:#isinstance(item, ScientistItem):
+        if isinstance(item, ScientistItem):
             self.cursor.execute("""
                 
                 INSERT INTO
@@ -153,13 +160,11 @@ class SaveToDataBase:
                 bibliometrics (
                     h_index_wos,
                     h_index_scopus,
-                    citation_count,
                     publication_count,
                     ministerial_score,
                     scientist_id
                 )
                 VALUES (
-                        %s,
                         %s,
                         %s,
                         %s,
@@ -170,12 +175,34 @@ class SaveToDataBase:
                 (
                     adapter['h_index_wos'],
                     adapter['h_index_scopus'],
-                    adapter['citation_count'],
                     adapter['publication_count'],
                     adapter['ministerial_score'],
                     scientis_id
                 ))
-        if isinstance(item, publicationItem):
+            
+
+            self.cursor.execute(f"SELECT id FROM organizations WHERE name like '{adapter['organization']}'")
+
+            org_id=self.cursor.fetchone()[0]
+
+            if org_id:
+                self.cursor.execute("""
+                
+                INSERT INTO
+                scientist_organization (
+                    scientist_id,
+                    organization_id
+                )
+                VALUES (
+                        %s,
+                        %s
+                        );
+                """,
+                (
+                    scientis_id,
+                    org_id
+                ))
+        elif isinstance(item, publicationItem):
             self.cursor.execute("""
                 
                 INSERT INTO
@@ -202,7 +229,7 @@ class SaveToDataBase:
                     0,
                 ))
             
-        if False:#isinstance(item, organizationItem):
+        elif isinstance(item, organizationItem):
             org_type=['institute', 'cathedra']
             
             if adapter['institute']:
@@ -240,6 +267,7 @@ class SaveToDataBase:
                         cathedra,
                         org_type[1]
                     ))
+            
 
         return item
     

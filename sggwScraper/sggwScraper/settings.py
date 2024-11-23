@@ -13,6 +13,7 @@ SPIDER_MODULES = ["sggwScraper.spiders"]
 NEWSPIDER_MODULE = "sggwScraper.spiders"
 
 #Playwright settings
+#PLAYWRIGHT_PROCESS_REQUEST_HEADERS=None
 PLAYWRIGHT_MAX_CONTEXTS = 4
 PLAYWRIGHT_LAUNCH_OPTIONS={"headless": False}
 
@@ -33,7 +34,7 @@ ROBOTSTXT_OBEY = False
 RETRY_ENABLED = True
 RETRY_HTTP_CODES = [500]
 RETRY_TIMES = 5
-PLAYWRIGHT_DEFAULT_NAVIGATION_TIMEOUT = 120000
+PLAYWRIGHT_DEFAULT_NAVIGATION_TIMEOUT = 180000
 
 
 LOG_ENABLED = True
@@ -44,16 +45,16 @@ LOG_FILE = "scrapy_errors.log"  # Plik, do którego będą zapisywane logi
 AUTOTHROTTLE_ENABLED = True
 
 # Początkowe opóźnienie między żądaniami
-AUTOTHROTTLE_START_DELAY = 0.5
+AUTOTHROTTLE_START_DELAY = 0.2
 
 # Maksymalne opóźnienie w przypadku przeciążenia serwera
-AUTOTHROTTLE_MAX_DELAY = 2
+AUTOTHROTTLE_MAX_DELAY = 60
 
 # Docelowa liczba żądań równoczesnych na serwer
-AUTOTHROTTLE_TARGET_CONCURRENCY = 7
+AUTOTHROTTLE_TARGET_CONCURRENCY = 4
 
 # Włączenie logowania, aby monitorować działanie Autothrottle
-AUTOTHROTTLE_DEBUG = True
+AUTOTHROTTLE_DEBUG = False
 
 
 
