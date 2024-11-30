@@ -17,15 +17,15 @@ class PunktozaPipeline:
         dotenv_path = os.path.join(os.path.dirname(__file__), '..', '.env')
         load_dotenv(dotenv_path=dotenv_path)
 
-        hostname = os.getenv("PGHOST")
-        username = os.getenv("PGUSER")
-        password = os.getenv("PGPASSWORD")
-        port = os.getenv("PGPORT")
-        database = os.getenv("PGDATABASE")
+        self.hostname = os.getenv("PGHOST")
+        self.scraper_username = os.getenv("PGUSERSCRAPER")
+        self.scraper_password = os.getenv("PGPASSWORDSCRAPER")
+        self.port = os.getenv("PGPORT")
+        self.database = os.getenv("PGDATABASE")
 
-        self.connection = psycopg.connect(host=hostname, user=username, password=password, dbname=database, port=port)
+        self.connection = psycopg.connect(host=self.hostname, user=self.scraper_username, 
+                                          password=self.scraper_password, dbname=self.database, port=self.port)
         self.cur = self.connection.cursor()
-
     def process_item(self, item, spider):
         # Update impact factor points for every journal in the database
         adapter = ItemAdapter(item)
@@ -37,7 +37,7 @@ class PunktozaPipeline:
             update_query = """
             UPDATE publications
             SET impact_factor = %s
-            WHERE journal = %s AND impact_factor IS NULL;
+            WHERE journal = %s AND journal_impact_factor = 0;
         """
             try:
                 self.cur.execute(update_query, (impact_factor, journal))
@@ -65,14 +65,15 @@ class NameFilterPipeline:
         dotenv_path = os.path.join(os.path.dirname(__file__), '..', '.env')
         load_dotenv(dotenv_path=dotenv_path)
 
-        self.connection = psycopg.connect(host=hostname, user=username, password=password, dbname=database, port=port)
-        self.cur = self.connection.cursor()
+        self.hostname = os.getenv("PGHOST")
+        self.reader_username = os.getenv("PGUSERREADER")
+        self.reader_password = os.getenv("PGPASSWORDREADER")
+        self.port = os.getenv("PGPORT")
+        self.database = os.getenv("PGDATABASE")
 
-        hostname = os.getenv("PGHOST")
-        username = os.getenv("PGUSER")
-        password = os.getenv("PGPASSWORD")
-        port = os.getenv("PGPORT")
-        database = os.getenv("PGDATABASE")
+        self.connection = psycopg.connect(host=self.hostname, user=self.reader_username, 
+                                          password=self.reader_password, dbname=self.database, port=self.port)
+        self.cur = self.connection.cursor()
 
         # Test with names given in txt file
         # journal_names_path = os.path.join(os.path.dirname(__file__), '..', 'journal_names.txt')

@@ -73,10 +73,10 @@ CONCURRENT_REQUESTS = 20
 
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
-# ITEM_PIPELINES = {
-#     # "punktoza.pipelines.NameFilterPipeline" : 100,
-#     # "punktoza.pipelines.PunktozaPipeline": 300,
-# }
+ITEM_PIPELINES = {
+    "punktoza.pipelines.NameFilterPipeline" : 100,
+    "punktoza.pipelines.PunktozaPipeline": 300,
+}
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/autothrottle.html
@@ -105,4 +105,4 @@ TWISTED_REACTOR = "twisted.internet.asyncioreactor.AsyncioSelectorReactor"
 FEED_EXPORT_ENCODING = "utf-8"
 
 # Logging
-LOG_LEVEL = 'WARNING'
+LOG_LEVEL = 'ERROR'
