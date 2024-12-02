@@ -90,26 +90,7 @@ class SaveToDataBase:
         )
         self.cursor = self.conn.cursor()
         
-        #DELETE FROM organizations;
-        '''
-        self.cursor.execute("""
-            DELETE FROM bibliometrics;
-            DELETE FROM scientists;
-            
-            
-            DELETE FROM publications;
-            
-            INSERT INTO
-            organizations (
-                name,
-                type
-                )
-                VALUES (
-                    'SGGW',
-                    'university'
-                    );
-            """)
-        '''
+        
 
     def close_spider(self, spider):
         # Commit any remaining data and close the connection when the spider finishes
@@ -123,115 +104,266 @@ class SaveToDataBase:
         adapter=ItemAdapter(item)
         
         if isinstance(item, ScientistItem):
+            #scientist table
             self.cursor.execute("""
-                
-                INSERT INTO
-                scientists (
+                SELECT
+                    s.id,
                     first_name,
                     last_name,
                     academic_title,
                     research_area,
                     email,
-                    profile_url
-                )
-                VALUES (
-                        %s,
-                        %s,
-                        %s,
-                        %s,
-                        %s,
-                        %s
-                        ) RETURNING id;
-                """,
-                (
-                    adapter['first_name'],
-                    adapter['last_name'],
-                    adapter['academic_title'],
-                    adapter['research_area'],
-                    adapter['email'],
-                    adapter['profile_url']
-                ))
-            
-            scientis_id=self.cursor.fetchone()[0]
-
-            self.cursor.execute("""
-                
-                INSERT INTO
-                bibliometrics (
+                    profile_url,
+                    college,
                     h_index_wos,
                     h_index_scopus,
                     publication_count,
                     ministerial_score,
-                    scientist_id
-                )
-                VALUES (
-                        %s,
-                        %s,
-                        %s,
-                        %s,
-                        %s
-                        );
-                """,
-                (
-                    adapter['h_index_wos'],
-                    adapter['h_index_scopus'],
-                    adapter['publication_count'],
-                    adapter['ministerial_score'],
-                    scientis_id
-                ))
+                    name
+                FROM 
+                    scientists s
+                INNER JOIN 
+                    bibliometrics b ON s.id = b.scientist_id
+                INNER JOIN
+                    scientist_organization so ON s.id = so.scientist_id
+                INNER JOIN
+                    organizations o ON so.organization_id = o.id
+                WHERE profile_url like %s;
+                """, (
+                adapter['profile_url'],
+            ))
+            scientist_in_db = self.cursor.fetchone()
+            scientistFields=tuple(ItemAdapter(item).values())
             
 
-            self.cursor.execute(f"SELECT id FROM organizations WHERE name like '{adapter['organization']}'")
+            if scientist_in_db:
+                scientist_id=scientist_in_db[0]
+                if scientist_in_db[1:8]!=scientistFields[:7]:
+                    #update scientist
+                    self.cursor.execute("""
+                        UPDATE scientists
+                        SET
+                            first_name = %s,
+                            last_name = %s,
+                            academic_title = %s,
+                            research_area = %s,
+                            email = %s,
+                            profile_url = %s,
+                            updated_at = CURRENT_TIMESTAMP,
+                            college=%s
+                        WHERE id = %s;
+                        """, 
+                    (
+                        adapter['first_name'],
+                        adapter['last_name'],
+                        adapter['academic_title'],
+                        adapter['research_area'],
+                        adapter['email'],
+                        adapter['profile_url'],
+                        adapter['college'],
+                        scientist_id
+                    ))
+                elif scientist_in_db[8:-1]!=scientistFields[7:-1]:
+                    #update bibliometrics
+                    self.cursor.execute("""
+                        UPDATE bibliometrics
+                        SET
+                            h_index_wos = %s,
+                            h_index_scopus = %s,
+                            publication_count = %s,
+                            ministerial_score = %s,
+                            updated_at = CURRENT_TIMESTAMP
+                        WHERE scientist_id = %s;
+                        """,
+                    (  
+                        adapter['h_index_wos'],
+                        adapter['h_index_scopus'],
+                        adapter['publication_count'],
+                        adapter['ministerial_score'],
+                        scientist_id
+                    ))
+                elif scientist_in_db[-1]!=scientistFields[-1]:
+                    #update organization
+                    self.cursor.execute(f"SELECT id FROM organizations WHERE name like '{adapter['organization']}'")
+                    org_id=self.cursor.fetchone()[0]
 
-            org_id=self.cursor.fetchone()[0]
-
-            if org_id:
+                    self.cursor.execute("""
+                        UPDATE scientist_organization
+                        SET
+                            organization_id = %s,
+                            updated_at = CURRENT_TIMESTAMP
+                        WHERE scientist_id = %s;
+                        """,
+                    (
+                        org_id,
+                        scientist_id
+                    ))
+                
+            else:
                 self.cursor.execute("""
+                    
+                    INSERT INTO
+                    scientists (
+                        first_name,
+                        last_name,
+                        academic_title,
+                        research_area,
+                        email,
+                        profile_url,
+                        college
+                    )
+                    VALUES (
+                            %s,
+                            %s,
+                            %s,
+                            %s,
+                            %s,
+                            %s,
+                            %s
+                            ) RETURNING id;
+                    """,
+                    (
+                        adapter['first_name'],
+                        adapter['last_name'],
+                        adapter['academic_title'],
+                        adapter['research_area'],
+                        adapter['email'],
+                        adapter['profile_url'],
+                        adapter['college']
+                    ))
                 
-                INSERT INTO
-                scientist_organization (
-                    scientist_id,
-                    organization_id
-                )
-                VALUES (
-                        %s,
-                        %s
-                        );
-                """,
-                (
-                    scientis_id,
-                    org_id
-                ))
-        elif isinstance(item, publicationItem):
+                scientist_id=self.cursor.fetchone()[0]
+
+                self.cursor.execute("""
+                    
+                    INSERT INTO
+                    bibliometrics (
+                        h_index_wos,
+                        h_index_scopus,
+                        publication_count,
+                        ministerial_score,
+                        scientist_id
+                    )
+                    VALUES (
+                            %s,
+                            %s,
+                            %s,
+                            %s,
+                            %s
+                            );
+                    """,
+                    (
+                        adapter['h_index_wos'],
+                        adapter['h_index_scopus'],
+                        adapter['publication_count'],
+                        adapter['ministerial_score'],
+                        scientist_id
+                    ))
+            
+
+                self.cursor.execute(f"SELECT id FROM organizations WHERE name like '{adapter['organization']}'")
+                org_id=self.cursor.fetchone()[0]
+
+                if org_id:
+                    self.cursor.execute("""
+                    
+                    INSERT INTO
+                    scientist_organization (
+                        scientist_id,
+                        organization_id
+                    )
+                    VALUES (
+                            %s,
+                            %s
+                            );
+                    """,
+                    (
+                        scientist_id,
+                        org_id
+                    ))
+
+
+        elif False:#isinstance(item, publicationItem):
+
             self.cursor.execute("""
-                
-                INSERT INTO
-                publications (
+                SELECT
+                    p.id,
                     title,
                     journal,
-                    publication_date,
-                    citations_count,
-                    journal_impact_factor
-                )
-                VALUES (
-                        %s,
-                        %s,
-                        %s,
-                        %s,
-                        %s
-                        );
-                """,
-                (
-                    adapter['title'],
-                    adapter['journal'],
-                    adapter['publication_date'],
-                    adapter['citations_count'],
-                    0,
-                ))
+                    publication_date
+                FROM publications p 
+                INNER JOIN scientists_publications sp ON p.id = sp.publication_id
+                WHERE title like %s AND journal like %s AND publication_date like %s;                
+            """,
+            (
+                adapter['title'],
+                adapter['journal'],
+                adapter['publication_date']
+            ))
+                
+            publication_in_db=self.cursor.fetchone()
+
+            if publication_in_db:
+                self.cursor.execute("""
+                    SELECT 
+                        first_name, 
+                        last_name 
+                    FROM scientists_publications sp 
+                    INNER JOIN scientists s ON sp.scientist_id=s.id 
+                    WHERE publication_id = %s;
+                    """,( 
+                    publication_in_db[0],))
+
+            else:
+                self.cursor.execute("""
+                    
+                    INSERT INTO
+                    publications (
+                        title,
+                        journal,
+                        publication_date,
+                        journal_impact_factor
+                    )
+                    VALUES (
+                            %s,
+                            %s,
+                            %s,
+                            %s
+                            ) RETURNING id;
+                    """,
+                    (
+                        adapter['title'],
+                        adapter['journal'],
+                        adapter['publication_date'],
+                        0
+                    ))
+                publication_id=self.cursor.fetchone()[0]
+
+                for full_name in adapter['authors']:
+                    self.cursor.execute("SELECT id FROM scientists WHERE first_name = %s AND last_name = %s;", (full_name[0], full_name[1]))
+                    author_id=self.cursor.fetchone()
+                    if author_id:
+                        self.cursor.execute(
+                            """
+                            INSERT INTO
+                            scientists_publications (
+                                scientist_id,
+                                publication_id
+                            )
+                            VALUES (
+                                    %s,
+                                    %s
+                                    );
+                            """,
+                            (
+                                author_id[0],
+                                publication_id
+                            ))
+                                
             
-        elif isinstance(item, organizationItem):
+        elif False:#isinstance(item, organizationItem):
             org_type=['institute', 'cathedra']
-            
+            #self.cursor.execute("Select name from organizations where name like %s;", (adapter['institute']))
             if adapter['institute']:
                 self.cursor.execute("""
                     

@@ -13,6 +13,7 @@ class ScientistItem(scrapy.Item):
     research_area = scrapy.Field()
     email = scrapy.Field()
     profile_url = scrapy.Field()
+    college=scrapy.Field()
     h_index_scopus = scrapy.Field()
     h_index_wos = scrapy.Field()
     publication_count = scrapy.Field()
@@ -25,8 +26,6 @@ class publicationItem(scrapy.Item):
     title = scrapy.Field()
     journal = scrapy.Field()
     publication_date = scrapy.Field()
-    citations_count = scrapy.Field()
-    #impact_factor = scrapy.Field()
     authors = scrapy.Field()
 
 class organizationItem(scrapy.Item):
