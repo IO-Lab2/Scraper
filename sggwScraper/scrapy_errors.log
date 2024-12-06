@@ -1,0 +1,291 @@
+2024-12-06 00:53:05 [scrapy.core.scraper] ERROR: Error processing {'authors': ['https://bw.sggw.edu.pl/info/author/WULS5dd3c0e2e3954d188b2f9b82916742c5?r=publication&ps=20&title=Person%2Bprofile%2B%25E2%2580%2593%2BAgnieszka%2BTul-Krzyszczuk%2B%25E2%2580%2593%2BWarsaw%2BUniversity%2Bof%2BLife%2BSciences%2B-%2BSGGW&lang=en&pn=1',
+             'https://bw.sggw.edu.pl/info/author/WULS4dbbad39d96b48958c8485863c0df004?r=publication&ps=20&title=Person%2Bprofile%2B%25E2%2580%2593%2BBarbara%2BWyrzykowska%2B%25E2%2580%2593%2BWarsaw%2BUniversity%2Bof%2BLife%2BSciences%2B-%2BSGGW&lang=en&pn=1'],
+ 'publication_date': '2021\n\n ',
+ 'publisher': None,
+ 'title': 'Trust and the use of online Services',
+ 'vol': None}
+Traceback (most recent call last):
+  File "C:\Users\Kamil\anaconda3\envs\Scraping\Lib\site-packages\twisted\internet\defer.py", line 1075, in _runCallbacks
+    current.result = callback(  # type: ignore[misc]
+  File "C:\Users\Kamil\anaconda3\envs\Scraping\Lib\site-packages\scrapy\utils\defer.py", line 340, in f
+    return deferred_from_coro(coro_f(*coro_args, **coro_kwargs))
+  File "C:\Users\Kamil\Desktop\-_-\scraping\Projekt_SGGW\Scraper\sggwScraper\sggwScraper\pipelines.py", line 68, in process_item
+    adapter['authors'][i][k]=authors[i][k].strip()
+TypeError: 'str' object does not support item assignment
+2024-12-06 00:53:06 [scrapy.core.scraper] ERROR: Error processing {'authors': ['https://bw.sggw.edu.pl/info/author/WULSd3527b40fc054f47af198345d84f4d7d?r=publication&ps=20&title=Person%2Bprofile%2B%25E2%2580%2593%2BPiotr%2BPietrzak%2B%25E2%2580%2593%2BWarsaw%2BUniversity%2Bof%2BLife%2BSciences%2B-%2BSGGW&lang=en&pn=1',
+             'https://bw.sggw.edu.pl/info/author/WULS30126978a056423e800da95795a5feb3?r=publication&ps=20&title=Person%2Bprofile%2B%25E2%2580%2593%2BKatarzyna%2B%25C5%2581ukasiewicz%2B%25E2%2580%2593%2BWarsaw%2BUniversity%2Bof%2BLife%2BSciences%2B-%2BSGGW&lang=en&pn=1'],
+ 'publication_date': '2021\n\n ',
+ 'publisher': None,
+ 'title': 'Trust in mobile Banking in Polish Society - Results of Pilot '
+          'Studies',
+ 'vol': None}
+Traceback (most recent call last):
+  File "C:\Users\Kamil\anaconda3\envs\Scraping\Lib\site-packages\twisted\internet\defer.py", line 1075, in _runCallbacks
+    current.result = callback(  # type: ignore[misc]
+  File "C:\Users\Kamil\anaconda3\envs\Scraping\Lib\site-packages\scrapy\utils\defer.py", line 340, in f
+    return deferred_from_coro(coro_f(*coro_args, **coro_kwargs))
+  File "C:\Users\Kamil\Desktop\-_-\scraping\Projekt_SGGW\Scraper\sggwScraper\sggwScraper\pipelines.py", line 68, in process_item
+    adapter['authors'][i][k]=authors[i][k].strip()
+TypeError: 'str' object does not support item assignment
+2024-12-06 00:53:06 [scrapy.core.scraper] ERROR: Error processing {'authors': ['https://bw.sggw.edu.pl/info/author/WULS8fb6879e64784cabbdcfb6cf9e4ce34a?r=publication&ps=20&title=Person%2Bprofile%2B%25E2%2580%2593%2BKrzysztof%2BKrajewski%2B%25E2%2580%2593%2BWarsaw%2BUniversity%2Bof%2BLife%2BSciences%2B-%2BSGGW&lang=en&pn=1'],
+ 'publication_date': '2009\n\n ',
+ 'publisher': None,
+ 'title': 'Ocena badań skuteczności produktu biobójczego "Rehalit"',
+ 'vol': None}
+Traceback (most recent call last):
+  File "C:\Users\Kamil\anaconda3\envs\Scraping\Lib\site-packages\twisted\internet\defer.py", line 1075, in _runCallbacks
+    current.result = callback(  # type: ignore[misc]
+  File "C:\Users\Kamil\anaconda3\envs\Scraping\Lib\site-packages\scrapy\utils\defer.py", line 340, in f
+    return deferred_from_coro(coro_f(*coro_args, **coro_kwargs))
+  File "C:\Users\Kamil\Desktop\-_-\scraping\Projekt_SGGW\Scraper\sggwScraper\sggwScraper\pipelines.py", line 68, in process_item
+    adapter['authors'][i][k]=authors[i][k].strip()
+TypeError: 'str' object does not support item assignment
+2024-12-06 00:53:11 [scrapy.core.scraper] ERROR: Error processing {'authors': ['https://bw.sggw.edu.pl/info/author/WULS5f582277739e4a87a285ce12fa630573?r=publication&ps=20&title=Person%2Bprofile%2B%25E2%2580%2593%2BMaria%2BJanicka%2B%25E2%2580%2593%2BWarsaw%2BUniversity%2Bof%2BLife%2BSciences%2B-%2BSGGW&lang=en&pn=1'],
+ 'publication_date': '2023\n\n ',
+ 'publisher': None,
+ 'title': 'Grassland management for biodiversity',
+ 'vol': None}
+Traceback (most recent call last):
+  File "C:\Users\Kamil\anaconda3\envs\Scraping\Lib\site-packages\twisted\internet\defer.py", line 1075, in _runCallbacks
+    current.result = callback(  # type: ignore[misc]
+  File "C:\Users\Kamil\anaconda3\envs\Scraping\Lib\site-packages\scrapy\utils\defer.py", line 340, in f
+    return deferred_from_coro(coro_f(*coro_args, **coro_kwargs))
+  File "C:\Users\Kamil\Desktop\-_-\scraping\Projekt_SGGW\Scraper\sggwScraper\sggwScraper\pipelines.py", line 68, in process_item
+    adapter['authors'][i][k]=authors[i][k].strip()
+TypeError: 'str' object does not support item assignment
+2024-12-06 00:53:13 [scrapy.core.scraper] ERROR: Error processing {'authors': ['https://bw.sggw.edu.pl/info/author/WULS8fb6879e64784cabbdcfb6cf9e4ce34a?r=publication&ps=20&title=Person%2Bprofile%2B%25E2%2580%2593%2BKrzysztof%2BKrajewski%2B%25E2%2580%2593%2BWarsaw%2BUniversity%2Bof%2BLife%2BSciences%2B-%2BSGGW&lang=en&pn=1'],
+ 'publication_date': '1999\n\n ',
+ 'publisher': None,
+ 'title': 'Oznaczanie zawartości związków chromu (VI) w próbkach drewna '
+          'zaimpregnowanego środkiem owado- i grzybobójczym ADOLIT CCO '
+          'zawierającym sole chromu (VI)',
+ 'vol': None}
+Traceback (most recent call last):
+  File "C:\Users\Kamil\anaconda3\envs\Scraping\Lib\site-packages\twisted\internet\defer.py", line 1075, in _runCallbacks
+    current.result = callback(  # type: ignore[misc]
+  File "C:\Users\Kamil\anaconda3\envs\Scraping\Lib\site-packages\scrapy\utils\defer.py", line 340, in f
+    return deferred_from_coro(coro_f(*coro_args, **coro_kwargs))
+  File "C:\Users\Kamil\Desktop\-_-\scraping\Projekt_SGGW\Scraper\sggwScraper\sggwScraper\pipelines.py", line 68, in process_item
+    adapter['authors'][i][k]=authors[i][k].strip()
+TypeError: 'str' object does not support item assignment
+2024-12-06 00:53:14 [scrapy.core.scraper] ERROR: Error processing {'authors': ['https://bw.sggw.edu.pl/info/author/WULS8fb6879e64784cabbdcfb6cf9e4ce34a?r=publication&ps=20&title=Person%2Bprofile%2B%25E2%2580%2593%2BKrzysztof%2BKrajewski%2B%25E2%2580%2593%2BWarsaw%2BUniversity%2Bof%2BLife%2BSciences%2B-%2BSGGW&lang=en&pn=1'],
+ 'publication_date': '1999\n\n ',
+ 'publisher': None,
+ 'title': 'Badanie podatności na pleśnienie elementów stolarki okiennej. Wpływ '
+          'technologii impregnacji i dobór impregnatów na podatność elementów '
+          'stolarki okiennej na pleśnienie',
+ 'vol': None}
+Traceback (most recent call last):
+  File "C:\Users\Kamil\anaconda3\envs\Scraping\Lib\site-packages\twisted\internet\defer.py", line 1075, in _runCallbacks
+    current.result = callback(  # type: ignore[misc]
+  File "C:\Users\Kamil\anaconda3\envs\Scraping\Lib\site-packages\scrapy\utils\defer.py", line 340, in f
+    return deferred_from_coro(coro_f(*coro_args, **coro_kwargs))
+  File "C:\Users\Kamil\Desktop\-_-\scraping\Projekt_SGGW\Scraper\sggwScraper\sggwScraper\pipelines.py", line 68, in process_item
+    adapter['authors'][i][k]=authors[i][k].strip()
+TypeError: 'str' object does not support item assignment
+2024-12-06 00:53:15 [scrapy.core.scraper] ERROR: Error processing {'authors': ['https://bw.sggw.edu.pl/info/author/WULS8fb6879e64784cabbdcfb6cf9e4ce34a?r=publication&ps=20&title=Person%2Bprofile%2B%25E2%2580%2593%2BKrzysztof%2BKrajewski%2B%25E2%2580%2593%2BWarsaw%2BUniversity%2Bof%2BLife%2BSciences%2B-%2BSGGW&lang=en&pn=1'],
+ 'publication_date': '2004\n\n ',
+ 'publisher': None,
+ 'title': 'Badanie bioodpornościna na działanie grzybów pleśniowych Celugran '
+          'Termoizolacyjny',
+ 'vol': None}
+Traceback (most recent call last):
+  File "C:\Users\Kamil\anaconda3\envs\Scraping\Lib\site-packages\twisted\internet\defer.py", line 1075, in _runCallbacks
+    current.result = callback(  # type: ignore[misc]
+  File "C:\Users\Kamil\anaconda3\envs\Scraping\Lib\site-packages\scrapy\utils\defer.py", line 340, in f
+    return deferred_from_coro(coro_f(*coro_args, **coro_kwargs))
+  File "C:\Users\Kamil\Desktop\-_-\scraping\Projekt_SGGW\Scraper\sggwScraper\sggwScraper\pipelines.py", line 68, in process_item
+    adapter['authors'][i][k]=authors[i][k].strip()
+TypeError: 'str' object does not support item assignment
+2024-12-06 00:53:15 [scrapy.core.scraper] ERROR: Error processing {'authors': ['https://bw.sggw.edu.pl/info/author/WULS62c7c2cbf41b4cf18b3934d5aca2492d?r=publication&ps=20&title=Person%2Bprofile%2B%25E2%2580%2593%2BBeata%2BDolka%2B%25E2%2580%2593%2BWarsaw%2BUniversity%2Bof%2BLife%2BSciences%2B-%2BSGGW&lang=en&pn=1',
+             'https://bw.sggw.edu.pl/info/author/WULS2d22d074c3cf4c7cb82ebba03d6b7b73?r=publication&ps=20&title=Person%2Bprofile%2B%25E2%2580%2593%2BAleksandra%2BLedwo%25C5%2584%2B%25E2%2580%2593%2BWarsaw%2BUniversity%2Bof%2BLife%2BSciences%2B-%2BSGGW&lang=en&pn=1',
+             'https://bw.sggw.edu.pl/info/author/WULS5b9cc18b37e04e39ae44e3b2caeacec4?r=publication&ps=20&title=Person%2Bprofile%2B%25E2%2580%2593%2BIzabella%2BDolka%2B%25E2%2580%2593%2BWarsaw%2BUniversity%2Bof%2BLife%2BSciences%2B-%2BSGGW&lang=en&pn=1',
+             'https://bw.sggw.edu.pl/info/author/WULSe5bab7cbbeeb4d37ae26006365ffa542?r=publication&ps=20&title=Person%2Bprofile%2B%25E2%2580%2593%2BArtur%2B%25C5%25BBbikowski%2B%25E2%2580%2593%2BWarsaw%2BUniversity%2Bof%2BLife%2BSciences%2B-%2BSGGW&lang=en&pn=1',
+             'https://bw.sggw.edu.pl/info/author/WULS8e938149b27e422aab24ac4c85c9b467?r=publication&ps=20&title=Person%2Bprofile%2B%25E2%2580%2593%2BPiotr%2BSzeleszczuk%2B%25E2%2580%2593%2BWarsaw%2BUniversity%2Bof%2BLife%2BSciences%2B-%2BSGGW&lang=en&pn=1'],
+ 'publication_date': '2023\n\n ',
+ 'publisher': None,
+ 'title': 'Choroby pasożytnicze ptaków – wybrane przypadki (Parasitic diseases '
+          'in birds – selected cases)',
+ 'vol': None}
+Traceback (most recent call last):
+  File "C:\Users\Kamil\anaconda3\envs\Scraping\Lib\site-packages\twisted\internet\defer.py", line 1075, in _runCallbacks
+    current.result = callback(  # type: ignore[misc]
+  File "C:\Users\Kamil\anaconda3\envs\Scraping\Lib\site-packages\scrapy\utils\defer.py", line 340, in f
+    return deferred_from_coro(coro_f(*coro_args, **coro_kwargs))
+  File "C:\Users\Kamil\Desktop\-_-\scraping\Projekt_SGGW\Scraper\sggwScraper\sggwScraper\pipelines.py", line 68, in process_item
+    adapter['authors'][i][k]=authors[i][k].strip()
+TypeError: 'str' object does not support item assignment
+2024-12-06 00:53:16 [scrapy.core.scraper] ERROR: Error processing {'authors': ['https://bw.sggw.edu.pl/info/author/WULSa19b28e6606148e980a81b92cde66ceb?r=publication&ps=20&title=Person%2Bprofile%2B%25E2%2580%2593%2BBeata%2BBilska%2B%25E2%2580%2593%2BWarsaw%2BUniversity%2Bof%2BLife%2BSciences%2B-%2BSGGW&lang=en&pn=1',
+             'https://bw.sggw.edu.pl/info/author/WULS9f42a8bc14974d6aa656cd2b52baa95e?r=publication&ps=20&title=Person%2Bprofile%2B%25E2%2580%2593%2BMarzena%2BTomaszewska%2B%25E2%2580%2593%2BWarsaw%2BUniversity%2Bof%2BLife%2BSciences%2B-%2BSGGW&lang=en&pn=1'],
+ 'publication_date': '2024\n\n ',
+ 'publisher': None,
+ 'title': 'Marnowanie żywności w 2024. Czy ten problem wciąż nas dotyczy?',
+ 'vol': None}
+Traceback (most recent call last):
+  File "C:\Users\Kamil\anaconda3\envs\Scraping\Lib\site-packages\twisted\internet\defer.py", line 1075, in _runCallbacks
+    current.result = callback(  # type: ignore[misc]
+  File "C:\Users\Kamil\anaconda3\envs\Scraping\Lib\site-packages\scrapy\utils\defer.py", line 340, in f
+    return deferred_from_coro(coro_f(*coro_args, **coro_kwargs))
+  File "C:\Users\Kamil\Desktop\-_-\scraping\Projekt_SGGW\Scraper\sggwScraper\sggwScraper\pipelines.py", line 68, in process_item
+    adapter['authors'][i][k]=authors[i][k].strip()
+TypeError: 'str' object does not support item assignment
+2024-12-06 00:53:16 [scrapy.core.scraper] ERROR: Error processing {'authors': ['https://bw.sggw.edu.pl/info/author/WULS8fb6879e64784cabbdcfb6cf9e4ce34a?r=publication&ps=20&title=Person%2Bprofile%2B%25E2%2580%2593%2BKrzysztof%2BKrajewski%2B%25E2%2580%2593%2BWarsaw%2BUniversity%2Bof%2BLife%2BSciences%2B-%2BSGGW&lang=en&pn=1'],
+ 'publication_date': '2009\n\n ',
+ 'publisher': None,
+ 'title': 'Ocena badań skuteczności produktu biobójczego "Olej kreozotowy '
+          'Gatunek B"',
+ 'vol': None}
+Traceback (most recent call last):
+  File "C:\Users\Kamil\anaconda3\envs\Scraping\Lib\site-packages\twisted\internet\defer.py", line 1075, in _runCallbacks
+    current.result = callback(  # type: ignore[misc]
+  File "C:\Users\Kamil\anaconda3\envs\Scraping\Lib\site-packages\scrapy\utils\defer.py", line 340, in f
+    return deferred_from_coro(coro_f(*coro_args, **coro_kwargs))
+  File "C:\Users\Kamil\Desktop\-_-\scraping\Projekt_SGGW\Scraper\sggwScraper\sggwScraper\pipelines.py", line 68, in process_item
+    adapter['authors'][i][k]=authors[i][k].strip()
+TypeError: 'str' object does not support item assignment
+2024-12-06 00:53:17 [scrapy.core.scraper] ERROR: Error processing {'authors': ['https://bw.sggw.edu.pl/info/author/WULS8fb6879e64784cabbdcfb6cf9e4ce34a?r=publication&ps=20&title=Person%2Bprofile%2B%25E2%2580%2593%2BKrzysztof%2BKrajewski%2B%25E2%2580%2593%2BWarsaw%2BUniversity%2Bof%2BLife%2BSciences%2B-%2BSGGW&lang=en&pn=1'],
+ 'publication_date': '2007\n\n ',
+ 'publisher': None,
+ 'title': 'Ocena badań skuteczności produktu biobójczego "Resistol N"',
+ 'vol': None}
+Traceback (most recent call last):
+  File "C:\Users\Kamil\anaconda3\envs\Scraping\Lib\site-packages\twisted\internet\defer.py", line 1075, in _runCallbacks
+    current.result = callback(  # type: ignore[misc]
+  File "C:\Users\Kamil\anaconda3\envs\Scraping\Lib\site-packages\scrapy\utils\defer.py", line 340, in f
+    return deferred_from_coro(coro_f(*coro_args, **coro_kwargs))
+  File "C:\Users\Kamil\Desktop\-_-\scraping\Projekt_SGGW\Scraper\sggwScraper\sggwScraper\pipelines.py", line 68, in process_item
+    adapter['authors'][i][k]=authors[i][k].strip()
+TypeError: 'str' object does not support item assignment
+2024-12-06 00:53:18 [scrapy.core.scraper] ERROR: Error processing {'authors': ['https://bw.sggw.edu.pl/info/author/WULS8fb6879e64784cabbdcfb6cf9e4ce34a?r=publication&ps=20&title=Person%2Bprofile%2B%25E2%2580%2593%2BKrzysztof%2BKrajewski%2B%25E2%2580%2593%2BWarsaw%2BUniversity%2Bof%2BLife%2BSciences%2B-%2BSGGW&lang=en&pn=1'],
+ 'publication_date': '2004\n\n ',
+ 'publisher': None,
+ 'title': 'Ekspertyza mykologiczno-budowlana obiektów budowlanych w '
+          'Konstancinie przy ul. Jagiellońskiej 23',
+ 'vol': None}
+Traceback (most recent call last):
+  File "C:\Users\Kamil\anaconda3\envs\Scraping\Lib\site-packages\twisted\internet\defer.py", line 1075, in _runCallbacks
+    current.result = callback(  # type: ignore[misc]
+  File "C:\Users\Kamil\anaconda3\envs\Scraping\Lib\site-packages\scrapy\utils\defer.py", line 340, in f
+    return deferred_from_coro(coro_f(*coro_args, **coro_kwargs))
+  File "C:\Users\Kamil\Desktop\-_-\scraping\Projekt_SGGW\Scraper\sggwScraper\sggwScraper\pipelines.py", line 68, in process_item
+    adapter['authors'][i][k]=authors[i][k].strip()
+TypeError: 'str' object does not support item assignment
+2024-12-06 00:53:18 [scrapy.core.scraper] ERROR: Error processing {'authors': ['https://bw.sggw.edu.pl/info/author/WULSc47bdc4a11704cf3994a1c7c0901f111?r=publication&ps=20&title=Person%2Bprofile%2B%25E2%2580%2593%2BW%25C5%2582odzimierz%2BBuraczyk%2B%25E2%2580%2593%2BWarsaw%2BUniversity%2Bof%2BLife%2BSciences%2B-%2BSGGW&lang=en&pn=1',
+             'https://bw.sggw.edu.pl/info/author/WULS58262cc484c74751989af3c2bc4cb9cc?r=publication&ps=20&title=Person%2Bprofile%2B%25E2%2580%2593%2BAgata%2BKonecka%2B%25E2%2580%2593%2BWarsaw%2BUniversity%2Bof%2BLife%2BSciences%2B-%2BSGGW&lang=en&pn=1'],
+ 'publication_date': '2020\n\n ',
+ 'publisher': None,
+ 'title': 'Seed production and its quality on Norway spruce ( Picea abies (L.) '
+          'H. Karst) seed orchard originated from the Białowieża Primeval '
+          'Forest',
+ 'vol': None}
+Traceback (most recent call last):
+  File "C:\Users\Kamil\anaconda3\envs\Scraping\Lib\site-packages\twisted\internet\defer.py", line 1075, in _runCallbacks
+    current.result = callback(  # type: ignore[misc]
+  File "C:\Users\Kamil\anaconda3\envs\Scraping\Lib\site-packages\scrapy\utils\defer.py", line 340, in f
+    return deferred_from_coro(coro_f(*coro_args, **coro_kwargs))
+  File "C:\Users\Kamil\Desktop\-_-\scraping\Projekt_SGGW\Scraper\sggwScraper\sggwScraper\pipelines.py", line 68, in process_item
+    adapter['authors'][i][k]=authors[i][k].strip()
+TypeError: 'str' object does not support item assignment
+2024-12-06 00:53:19 [scrapy.core.scraper] ERROR: Error processing {'authors': ['https://bw.sggw.edu.pl/info/author/WULS8fb6879e64784cabbdcfb6cf9e4ce34a?r=publication&ps=20&title=Person%2Bprofile%2B%25E2%2580%2593%2BKrzysztof%2BKrajewski%2B%25E2%2580%2593%2BWarsaw%2BUniversity%2Bof%2BLife%2BSciences%2B-%2BSGGW&lang=en&pn=1'],
+ 'publication_date': '1995\n\n ',
+ 'publisher': None,
+ 'title': 'Ekspertyza stanu zabezpieczenia chemicznego drewnianej więźby '
+          'dachowej budynków SM-PAN AKADEMIA w Warszawie',
+ 'vol': None}
+Traceback (most recent call last):
+  File "C:\Users\Kamil\anaconda3\envs\Scraping\Lib\site-packages\twisted\internet\defer.py", line 1075, in _runCallbacks
+    current.result = callback(  # type: ignore[misc]
+  File "C:\Users\Kamil\anaconda3\envs\Scraping\Lib\site-packages\scrapy\utils\defer.py", line 340, in f
+    return deferred_from_coro(coro_f(*coro_args, **coro_kwargs))
+  File "C:\Users\Kamil\Desktop\-_-\scraping\Projekt_SGGW\Scraper\sggwScraper\sggwScraper\pipelines.py", line 68, in process_item
+    adapter['authors'][i][k]=authors[i][k].strip()
+TypeError: 'str' object does not support item assignment
+2024-12-06 00:53:19 [scrapy.core.scraper] ERROR: Error processing {'authors': ['https://bw.sggw.edu.pl/info/author/WULS8fb6879e64784cabbdcfb6cf9e4ce34a?r=publication&ps=20&title=Person%2Bprofile%2B%25E2%2580%2593%2BKrzysztof%2BKrajewski%2B%25E2%2580%2593%2BWarsaw%2BUniversity%2Bof%2BLife%2BSciences%2B-%2BSGGW&lang=en&pn=1'],
+ 'publication_date': '1992\n\n ',
+ 'publisher': None,
+ 'title': 'Stan zagrzybienia zbiorów bibliotecznych Biblioteki Narodowej',
+ 'vol': None}
+Traceback (most recent call last):
+  File "C:\Users\Kamil\anaconda3\envs\Scraping\Lib\site-packages\twisted\internet\defer.py", line 1075, in _runCallbacks
+    current.result = callback(  # type: ignore[misc]
+  File "C:\Users\Kamil\anaconda3\envs\Scraping\Lib\site-packages\scrapy\utils\defer.py", line 340, in f
+    return deferred_from_coro(coro_f(*coro_args, **coro_kwargs))
+  File "C:\Users\Kamil\Desktop\-_-\scraping\Projekt_SGGW\Scraper\sggwScraper\sggwScraper\pipelines.py", line 68, in process_item
+    adapter['authors'][i][k]=authors[i][k].strip()
+TypeError: 'str' object does not support item assignment
+2024-12-06 00:53:19 [scrapy.core.scraper] ERROR: Error processing {'authors': ['https://bw.sggw.edu.pl/info/author/WULS8fb6879e64784cabbdcfb6cf9e4ce34a?r=publication&ps=20&title=Person%2Bprofile%2B%25E2%2580%2593%2BKrzysztof%2BKrajewski%2B%25E2%2580%2593%2BWarsaw%2BUniversity%2Bof%2BLife%2BSciences%2B-%2BSGGW&lang=en&pn=1'],
+ 'publication_date': '2002\n\n ',
+ 'publisher': None,
+ 'title': 'Ekspertyza interpretacyjna. Sadolin Base i Sadolin Classic jako '
+          'środki ochrony drewna',
+ 'vol': None}
+Traceback (most recent call last):
+  File "C:\Users\Kamil\anaconda3\envs\Scraping\Lib\site-packages\twisted\internet\defer.py", line 1075, in _runCallbacks
+    current.result = callback(  # type: ignore[misc]
+  File "C:\Users\Kamil\anaconda3\envs\Scraping\Lib\site-packages\scrapy\utils\defer.py", line 340, in f
+    return deferred_from_coro(coro_f(*coro_args, **coro_kwargs))
+  File "C:\Users\Kamil\Desktop\-_-\scraping\Projekt_SGGW\Scraper\sggwScraper\sggwScraper\pipelines.py", line 68, in process_item
+    adapter['authors'][i][k]=authors[i][k].strip()
+TypeError: 'str' object does not support item assignment
+2024-12-06 00:53:19 [scrapy.core.scraper] ERROR: Error processing {'authors': ['https://bw.sggw.edu.pl/info/author/WULSa9ce9821ce4f4e4bbab747a225a36ea8?r=publication&ps=20&title=Person%2Bprofile%2B%25E2%2580%2593%2BPiotr%2BB%25C4%2585ska%2B%25E2%2580%2593%2BWarsaw%2BUniversity%2Bof%2BLife%2BSciences%2B-%2BSGGW&lang=en&pn=1',
+             'https://bw.sggw.edu.pl/info/author/WULSe6b9f7f98b804337926924db0e6f6175?r=publication&ps=20&title=Person%2Bprofile%2B%25E2%2580%2593%2BAnna%2BZawistowska%2B%25E2%2580%2593%2BWarsaw%2BUniversity%2Bof%2BLife%2BSciences%2B-%2BSGGW&lang=en&pn=1',
+             'https://bw.sggw.edu.pl/info/author/WULSdb0d8101a68f451fa33faa953315941c?r=publication&ps=20&title=Person%2Bprofile%2B%25E2%2580%2593%2BMarcin%2BWi%25C5%259Bniewski%2B%25E2%2580%2593%2BWarsaw%2BUniversity%2Bof%2BLife%2BSciences%2B-%2BSGGW&lang=en&pn=1',
+             'https://bw.sggw.edu.pl/info/author/WULS3b98d80c14b54c54b19756cc0b03a90f?r=publication&ps=20&title=Person%2Bprofile%2B%25E2%2580%2593%2BKamil%2BJanuszkiewicz%2B%25E2%2580%2593%2BWarsaw%2BUniversity%2Bof%2BLife%2BSciences%2B-%2BSGGW&lang=en&pn=1',
+             'https://bw.sggw.edu.pl/info/author/WULS2536c079069d42c6b081bf9d41ffcd82?r=publication&ps=20&title=Person%2Bprofile%2B%25E2%2580%2593%2BHalina%2BW%25C4%2599drychowicz%2B%25E2%2580%2593%2BWarsaw%2BUniversity%2Bof%2BLife%2BSciences%2B-%2BSGGW&lang=en&pn=1'],
+ 'publication_date': '2010\n\n ',
+ 'publisher': None,
+ 'title': 'Komputerowa analiza immunogenności nowo poznanych antygenów '
+          'Fasciola hepatica stadium NEJ',
+ 'vol': None}
+Traceback (most recent call last):
+  File "C:\Users\Kamil\anaconda3\envs\Scraping\Lib\site-packages\twisted\internet\defer.py", line 1075, in _runCallbacks
+    current.result = callback(  # type: ignore[misc]
+  File "C:\Users\Kamil\anaconda3\envs\Scraping\Lib\site-packages\scrapy\utils\defer.py", line 340, in f
+    return deferred_from_coro(coro_f(*coro_args, **coro_kwargs))
+  File "C:\Users\Kamil\Desktop\-_-\scraping\Projekt_SGGW\Scraper\sggwScraper\sggwScraper\pipelines.py", line 68, in process_item
+    adapter['authors'][i][k]=authors[i][k].strip()
+TypeError: 'str' object does not support item assignment
+2024-12-06 00:53:20 [scrapy.core.scraper] ERROR: Error processing {'authors': ['https://bw.sggw.edu.pl/info/author/WULS8fb6879e64784cabbdcfb6cf9e4ce34a?r=publication&ps=20&title=Person%2Bprofile%2B%25E2%2580%2593%2BKrzysztof%2BKrajewski%2B%25E2%2580%2593%2BWarsaw%2BUniversity%2Bof%2BLife%2BSciences%2B-%2BSGGW&lang=en&pn=1'],
+ 'publication_date': '2010\n\n ',
+ 'publisher': None,
+ 'title': 'Ocena badań skuteczności produktu biobójczego "Korasit BQ"',
+ 'vol': None}
+Traceback (most recent call last):
+  File "C:\Users\Kamil\anaconda3\envs\Scraping\Lib\site-packages\twisted\internet\defer.py", line 1075, in _runCallbacks
+    current.result = callback(  # type: ignore[misc]
+  File "C:\Users\Kamil\anaconda3\envs\Scraping\Lib\site-packages\scrapy\utils\defer.py", line 340, in f
+    return deferred_from_coro(coro_f(*coro_args, **coro_kwargs))
+  File "C:\Users\Kamil\Desktop\-_-\scraping\Projekt_SGGW\Scraper\sggwScraper\sggwScraper\pipelines.py", line 68, in process_item
+    adapter['authors'][i][k]=authors[i][k].strip()
+TypeError: 'str' object does not support item assignment
+2024-12-06 00:53:20 [scrapy.core.scraper] ERROR: Error processing {'authors': ['https://bw.sggw.edu.pl/info/author/WULS8fb6879e64784cabbdcfb6cf9e4ce34a?r=publication&ps=20&title=Person%2Bprofile%2B%25E2%2580%2593%2BKrzysztof%2BKrajewski%2B%25E2%2580%2593%2BWarsaw%2BUniversity%2Bof%2BLife%2BSciences%2B-%2BSGGW&lang=en&pn=1'],
+ 'publication_date': '2010\n\n ',
+ 'publisher': None,
+ 'title': 'Ocena badań skuteczności produktu biobójczego "Kuprafung-no"',
+ 'vol': None}
+Traceback (most recent call last):
+  File "C:\Users\Kamil\anaconda3\envs\Scraping\Lib\site-packages\twisted\internet\defer.py", line 1075, in _runCallbacks
+    current.result = callback(  # type: ignore[misc]
+  File "C:\Users\Kamil\anaconda3\envs\Scraping\Lib\site-packages\scrapy\utils\defer.py", line 340, in f
+    return deferred_from_coro(coro_f(*coro_args, **coro_kwargs))
+  File "C:\Users\Kamil\Desktop\-_-\scraping\Projekt_SGGW\Scraper\sggwScraper\sggwScraper\pipelines.py", line 68, in process_item
+    adapter['authors'][i][k]=authors[i][k].strip()
+TypeError: 'str' object does not support item assignment
+2024-12-06 00:53:20 [scrapy.core.scraper] ERROR: Error processing {'authors': ['https://bw.sggw.edu.pl/info/author/WULS62c7c2cbf41b4cf18b3934d5aca2492d?r=publication&ps=20&title=Person%2Bprofile%2B%25E2%2580%2593%2BBeata%2BDolka%2B%25E2%2580%2593%2BWarsaw%2BUniversity%2Bof%2BLife%2BSciences%2B-%2BSGGW&lang=en&pn=1',
+             'https://bw.sggw.edu.pl/info/author/WULSd357eab1aa7946fab98e2c9e3feb0f59?r=publication&ps=20&title=Person%2Bprofile%2B%25E2%2580%2593%2BJoanna%2BTurniak%2B%25E2%2580%2593%2BWarsaw%2BUniversity%2Bof%2BLife%2BSciences%2B-%2BSGGW&lang=en&pn=1',
+             'https://bw.sggw.edu.pl/info/author/WULSe5bab7cbbeeb4d37ae26006365ffa542?r=publication&ps=20&title=Person%2Bprofile%2B%25E2%2580%2593%2BArtur%2B%25C5%25BBbikowski%2B%25E2%2580%2593%2BWarsaw%2BUniversity%2Bof%2BLife%2BSciences%2B-%2BSGGW&lang=en&pn=1',
+             'https://bw.sggw.edu.pl/info/author/WULS96bf946e7afe449b9c703b47fa5f4d5c?r=publication&ps=20&title=Person%2Bprofile%2B%25E2%2580%2593%2BKrzysztof%2BAdamczyk%2B%25E2%2580%2593%2BWarsaw%2BUniversity%2Bof%2BLife%2BSciences%2B-%2BSGGW&lang=en&pn=1',
+             'https://bw.sggw.edu.pl/info/author/WULS8e938149b27e422aab24ac4c85c9b467?r=publication&ps=20&title=Person%2Bprofile%2B%25E2%2580%2593%2BPiotr%2BSzeleszczuk%2B%25E2%2580%2593%2BWarsaw%2BUniversity%2Bof%2BLife%2BSciences%2B-%2BSGGW&lang=en&pn=1'],
+ 'publication_date': '2024\n\n ',
+ 'publisher': None,
+ 'title': 'Ocena wybranych parametrów chowu indyków rzeźnych w Polsce – dane '
+          'retrospektywne',
+ 'vol': None}
+Traceback (most recent call last):
+  File "C:\Users\Kamil\anaconda3\envs\Scraping\Lib\site-packages\twisted\internet\defer.py", line 1075, in _runCallbacks
+    current.result = callback(  # type: ignore[misc]
+  File "C:\Users\Kamil\anaconda3\envs\Scraping\Lib\site-packages\scrapy\utils\defer.py", line 340, in f
+    return deferred_from_coro(coro_f(*coro_args, **coro_kwargs))
+  File "C:\Users\Kamil\Desktop\-_-\scraping\Projekt_SGGW\Scraper\sggwScraper\sggwScraper\pipelines.py", line 68, in process_item
+    adapter['authors'][i][k]=authors[i][k].strip()
+TypeError: 'str' object does not support item assignment

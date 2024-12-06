@@ -15,7 +15,7 @@ NEWSPIDER_MODULE = "sggwScraper.spiders"
 #Playwright settings
 #PLAYWRIGHT_PROCESS_REQUEST_HEADERS=None
 #PLAYWRIGHT_MAX_CONTEXTS = 4
-PLAYWRIGHT_LAUNCH_OPTIONS={"headless": True, "timeout": 30 * 1000, "args": ["--no-sandbox", "--disable-setuid-sandbox"]}
+PLAYWRIGHT_LAUNCH_OPTIONS={"headless": False, "timeout": 30 * 1000, "args": ["--no-sandbox", "--disable-setuid-sandbox"]}
 
 DOWNLOAD_HANDLERS = {
     "http": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
@@ -114,7 +114,7 @@ DOWNLOADER_MIDDLEWARES = {
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
     "sggwScraper.pipelines.SggwscraperPipeline": 700,
-    'sggwScraper.pipelines.SaveToDataBase': 800,
+    #'sggwScraper.pipelines.SaveToDataBase': 800,
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)

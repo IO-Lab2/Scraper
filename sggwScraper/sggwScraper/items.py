@@ -24,11 +24,12 @@ class ScientistItem(scrapy.Item):
 
 class publicationItem(scrapy.Item):
     title = scrapy.Field()
-    journal = scrapy.Field()
+    publisher = scrapy.Field()
     publication_date = scrapy.Field()
     authors = scrapy.Field()
+    vol= scrapy.Field()
 
 class organizationItem(scrapy.Item):
     university = scrapy.Field()
     institute= scrapy.Field()
-    cathedras = scrapy.Field()
+    cathedras = scrapy.Field() #list of cathedras

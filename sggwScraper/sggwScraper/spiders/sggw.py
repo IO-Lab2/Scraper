@@ -26,15 +26,17 @@ class SggwSpider(scrapy.Spider):
 
     }
 
+    bw_url='https://bw.sggw.edu.pl'
 
+    
     def parse(self, response):
         #disciplines=response.css('a.omega-discipline::text').getall()
         
-        bw_url='https://bw.sggw.edu.pl'
+        
 
         categories_links=response.css('a.global-stats-link::attr(href)').getall()
         categories_names=response.css('span.global-stats-description::text').getall()
-        categories={name: bw_url+link for name, link in zip(categories_names, categories_links)}
+        categories={name: self.bw_url+link for name, link in zip(categories_names, categories_links)}
 
         #redirect to People category
         yield scrapy.Request(categories['People'], callback=self.parse_people_page,
@@ -52,7 +54,7 @@ class SggwSpider(scrapy.Spider):
                                     for (const button of buttons) {
                                         if (button.getAttribute('aria-expanded') === 'false') {
                                             await button.click();
-                                            await new Promise(r => setTimeout(r, 150));  // timeout to wait for the animation
+                                            await new Promise(r => setTimeout(r, 300));  // timeout to wait for the animation
                                         }
                                     }
                                 };
@@ -95,7 +97,7 @@ class SggwSpider(scrapy.Spider):
             yield organization
 
         
-        total_pages=int(response.css('span.entitiesDataListTotalPages::text').get())
+        total_pages=0#int(response.css('span.entitiesDataListTotalPages::text').get())
 
         #Generate requests for each page based on the total number of pages
         for page_number in range(1, total_pages + 1):
@@ -115,11 +117,11 @@ class SggwSpider(scrapy.Spider):
         
     async def parse_scientist_links(self, response):
         page=response.meta['playwright_page']
-        bw_url='https://bw.sggw.edu.pl'
+        
         authors_links=response.css('a.authorNameLink::attr(href)').getall()
         #redirect to every scientist profile
         for author in authors_links:
-            yield scrapy.Request(bw_url+author, callback=self.parse_scientist, dont_filter=True,
+            yield scrapy.Request(self.bw_url+author, callback=self.parse_scientist, dont_filter=True,
                 meta=dict(
                 playwright=True,
                 playwright_include_page=True,
@@ -142,13 +144,13 @@ class SggwSpider(scrapy.Spider):
             name_title=personal_data.css('span.authorName::text').getall()
             scientist['first_name']= name_title[0]
             scientist['last_name']= name_title[1]
+            academic_title=None
             if len(name_title)>2:
-                scientist['academic_title']= name_title[2]
-            else:
-                scientist['academic_title']=None
+                academic_title=name_title[2]
+                scientist['academic_title']= academic_title
             
-
-            scientist['research_area']= response.css('div.researchFieldsPanel ul.ul-element-wcag li span::text').getall() or None
+            research_area=response.css('div.researchFieldsPanel ul.ul-element-wcag li span::text').getall()
+            scientist['research_area']=research_area or None
             
             
             scientist['email']= personal_data.css('p.authorContactInfoEmailContainer>a::text').get() or None
@@ -185,45 +187,9 @@ class SggwSpider(scrapy.Spider):
             if organization_scientist:
                 scientist['organization']=organization_scientist[0]
 
-            '''
-            if response.css('ul.bibliometric-data-list li>span.indicatorName'):
-                i=0
-                while i<5:
-                    try:
-                        await page.wait_for_function(
-                                    """() => {
-                                        const element = document.querySelector('div#j_id_3_1q_1_1_8_6n_a_2');
-                                        return element && element.textContent.trim().length > 0;
-                                    }"""
-                                )
-                        #locator = page.locator("div#j_id_3_1q_1_1_8_6n_a_2")
-                        #await locator.wait_for(state="visible")
-                        #ministerial_score = await locator.inner_text()
-                        ministerial_score= await page.evaluate('document.querySelector("div#j_id_3_1q_1_1_8_6n_a_2")?.textContent.trim()')
-                        break
-                    except Exception as e:
-                        print(f'Blad w wait_for_function: {e} {response.url}')
-                        try:
-                            await page.reload()
-                            await asyncio.sleep(3)
-                            await page.wait_for_load_state("networkidle")
-                        except Exception as e:
-                            print(f'Blad w reload: {e} {response.url}')
-                        finally:
-                            i+=1
-                else:
-                    print(f'Nie udalo sie {response.url}')
-                    ministerial_score=0
-                    
-                if '—' not in ministerial_score:
-                    scientist['ministerial_score']=ministerial_score
-                else:
-                    scientist['ministerial_score']=0
-            else:
-                scientist['ministerial_score']=0
-            '''
+            if research_area and academic_title:
+                yield scientist
 
-            yield scientist
         except Exception:
             yield scrapy.Request(response.url, callback=self.parse_scientist, dont_filter=True,
                 meta=dict(
@@ -239,7 +205,7 @@ class SggwSpider(scrapy.Spider):
         
     async def parse_publication_page(self, response):
         page = response.meta['playwright_page']
-        total_pages = 0#int(response.css('span.entitiesDataListTotalPages::text').get().replace(',', ''))
+        total_pages = 1#int(response.css('span.entitiesDataListTotalPages::text').get().replace(',', ''))
         
         #Generate requests for each page based on the total number of pages
         for page_number in range(1, total_pages + 1):
@@ -259,12 +225,12 @@ class SggwSpider(scrapy.Spider):
         
     async def parse_publications_links(self, response):
         page = response.meta['playwright_page']
-        bw_url='https://bw.sggw.edu.pl'
+        
 
         publications_urls=response.css('div.entity-row-heading-wrapper>h5>a::attr(href)').getall()
 
         for pub in publications_urls:
-            yield scrapy.Request(bw_url+pub, callback=self.parse_publication,
+            yield scrapy.Request(self.bw_url+pub, callback=self.parse_publication,
                 meta=dict(
                 playwright=True,
                 playwright_include_page=True,
@@ -277,17 +243,21 @@ class SggwSpider(scrapy.Spider):
                 errback=self.errback
                 ))
         await page.close()
-
+    
     async def parse_publication(self, response):
         page = response.meta['playwright_page']
-
+        
         try:
-            authors=[]
-            authors_selector = response.css('div.authorList div.authorListElement a') or None
+            
+            authors_selector = response.css('div.authorListElement>a::attr(href)').getall() or None
+            authors_links=[self.bw_url+link for link in authors_selector ]
+            print(response.url)
+            print(authors_links)
+            '''
             if authors_selector:
                 for author in authors_selector:
                     authors.append(author.css('span.authorSimple>span::text').getall())
-
+            '''
             publication=publicationItem()
 
             
@@ -295,16 +265,16 @@ class SggwSpider(scrapy.Spider):
             publication['title']=response.css('div.publicationShortInfo>h2::text').get() or None
 
 
-            journal=response.xpath('//dl[contains(@class, "table2ColsContainer")]//dt[span[contains(text(), "Journal")]]/following-sibling::dd[1]//a/text()').get()
-            journal2=response.xpath('//dl[contains(@class, "table2ColsContainer")]//dt[span[contains(text(), "Journal")]]/following-sibling::dd[1]//div/text()').get()
-            journal3=response.xpath('//dl[contains(@class, "table2ColsContainer")]//dt[span[contains(text(), "Journal")]]/following-sibling::dd[1]/text()').get()
+            #journal=response.xpath('//dl[contains(@class, "table2ColsContainer")]//dt[span[contains(text(), "Journal")]]/following-sibling::dd[1]//a/text()').get()
+            #journal2=response.xpath('//dl[contains(@class, "table2ColsContainer")]//dt[span[contains(text(), "Journal")]]/following-sibling::dd[1]//div/text()').get()
+            #journal3=response.xpath('//dl[contains(@class, "table2ColsContainer")]//dt[span[contains(text(), "Journal")]]/following-sibling::dd[1]/text()').get()
             publisher=response.xpath('//dl[contains(@class, "table2ColsContainer")]//dt[span[contains(text(), "Publisher")]]/following-sibling::dd[1]//a/span/span/text()').get()
             publisher2=response.xpath('//dl[contains(@class, "table2ColsContainer")]//dt[span[contains(text(), "Publisher")]]/following-sibling::dd[1]//div/text()').get()
             publisher3=response.xpath('//dl[contains(@class, "table2ColsContainer")]//dt[span[contains(text(), "Publisher")]]/following-sibling::dd[1]/text()').get()
 
-            jour=[journal, journal2, journal3, publisher, publisher2, publisher3]
-            journals=[j for j in jour if j and j.strip()!='']   
-            publication['journal']=journals[0] if journals else None
+            pub=[publisher, publisher2, publisher3]
+            publishers=[j for j in pub if j and j.strip()!='']   
+            publication['publisher']=publishers[0] if publishers else None
             
             publication_date= response.xpath('//dl[contains(@class, "table2ColsContainer")]//dt[span[contains(text(), "Year of creation")]]/following-sibling::dd[1]/text()').get()
             publication_date_div= response.xpath('//dl[contains(@class, "table2ColsContainer")]//dt[span[contains(text(), "Year of creation")]]/following-sibling::dd[1]/div/text()').get()
@@ -314,10 +284,13 @@ class SggwSpider(scrapy.Spider):
             pub_dates=[publication_date, publication_date2, publication_date_div, publication_date_div2]
             valid_dates=[date for date in pub_dates if date and date.strip()!='0' and date.strip()!='']
             publication['publication_date'] = valid_dates[0] if valid_dates else None
-
-            #publication['citations_count']=response.xpath('//dt[span/text()="Publication indicators"]/following-sibling::dd[1]/ul/li[1]/a/text()').re_first(r'=\s*(\d+)') or 0
             
-            publication['authors']=authors
+            publication['authors']=authors_links
+
+            vol=response.xpath('//dl[contains(@class, "table2ColsContainer")]//dt[span[contains(text(), "Vol")]]/following-sibling::dd[1]/div/text()').get()
+            edition=response.xpath('//dl[contains(@class, "table2ColsContainer")]//dt[span[contains(text(), "Edition")]]/following-sibling::dd[1]/text()').get()
+            parts=[vol, edition]
+            publication['vol']= parts[0] if parts else None
 
             
             yield publication

@@ -5,6 +5,7 @@
 
 
 # useful for handling different item types with a single interface
+
 import os
 import psycopg2
 from attrs import field
@@ -283,7 +284,52 @@ class SaveToDataBase:
                     ))
 
 
-        elif False:#isinstance(item, publicationItem):
+        elif isinstance(item, publicationItem):
+
+            def add_publication(title, publisher, publication_date):
+                self.cursor.execute("""
+                    INSERT INTO 
+                    publications 
+                    (title, publisher, publication_date, journal_impact_factor) 
+                    VALUES (%s, %s, %s, %s) RETURNING id;""", 
+                    (title, publisher, publication_date, 0))
+                return self.cursor.fetchone()[0]
+
+            def get_or_create_publication(tittle, publisher, publication_date):
+                self.cursor.execute("""SELECT id FROM publications WHERE title like %s AND publisher like %s AND publication_date like %s;""", (tittle, publisher, publication_date))
+                result=self.cursor.fetchone()
+                if result:
+                    return result[0]
+                else:
+                    return add_publication(tittle, publisher, publication_date)
+
+            def add_author_to_publications(scientist_id, publication_id):
+                self.cursor.execute("""
+                    INSERT INTO 
+                    scientists_publications 
+                    (scientist_id, publication_id, ) 
+                    VALUES (%s, %s) RETURNING id;""", 
+                    (scientist_id, publication_id))
+                return self.cursor.fetchone()[0]
+
+            def get_or_create_author_publications(scientist_id, publication_id):
+                self.cursor.execute("""
+                    SELECT s.id 
+                    FROM scientists s 
+                    INNER JOIN 
+                    scientists_publications sp ON s.id=sp.scientist_id 
+                    WHERE s.id=%s AND publication_id=%s;""", 
+                    (scientist_id, publication_id))
+                result=self.cursor.fetchone()
+                if result:
+                    return result[0]
+                else:
+                    return add_author_to_publications(scientist_id, publication_id)
+                
+            if adapter['authors']:
+                pass
+                #for full_name in adapter['authors']:
+                    #self.cursor.execute("SELECT id FROM scientists WHERE first_name = %s AND last_name = %s;", (full_name[0], full_name[1]))
 
             self.cursor.execute("""
                 SELECT
@@ -361,10 +407,9 @@ class SaveToDataBase:
                             ))
                                 
             
-        elif False:#isinstance(item, organizationItem):
-            org_type=['institute', 'cathedra']
-            #self.cursor.execute("Select name from organizations where name like %s;", (adapter['institute']))
-            if adapter['institute']:
+        elif isinstance(item, organizationItem):
+            
+            def add_organization(name, organization_type):
                 self.cursor.execute("""
                     
                     INSERT INTO
@@ -375,20 +420,29 @@ class SaveToDataBase:
                     VALUES (
                             %s,
                             %s
-                            );
+                            ) RETURNING id;
                     """,
                     (
-                        adapter['institute'],
-                        org_type[0],
-                    ))
-            if adapter['cathedras']:
-                for cathedra in adapter['cathedras']:
-                    self.cursor.execute("""
-                
-                    INSERT INTO
-                    organizations (
                         name,
-                        type
+                        organization_type,
+                    ))
+                return self.cursor.fetchone()[0]
+            
+            def get_or_create_organization(name, organization_type):
+                self.cursor.execute("SELECT id FROM organizations WHERE name like %s AND type=%s;", (name, organization_type))
+                result=self.cursor.fetchone()
+                if result:
+                    return result[0]
+                else:
+                    return add_organization(name, organization_type)
+
+            def add_relationship(parent_id, child_id):
+                self.cursor.execute("""
+                    
+                    INSERT INTO
+                    organizations_relationships (
+                        parent_id,
+                        child_id
                     )
                     VALUES (
                             %s,
@@ -396,9 +450,35 @@ class SaveToDataBase:
                             );
                     """,
                     (
-                        cathedra,
-                        org_type[1]
+                        parent_id,
+                        child_id
                     ))
+                
+            def get_or_create_relationship(parent_id, child_id):
+                if parent_id is None:
+                    self.cursor.execute("SELECT id FROM organizations_relationships WHERE parent_id IS NULL AND child_id=%s;", (child_id,))
+                elif child_id is None:
+                    self.cursor.execute("SELECT id FROM organizations_relationships WHERE parent_id=%s AND child_id IS NULL;", (parent_id,))
+                else:
+                    self.cursor.execute("SELECT id FROM organizations_relationships WHERE parent_id=%s AND child_id=%s;", (parent_id, child_id))
+                if self.cursor.fetchone() is None:
+                    add_relationship(parent_id, child_id)
+
+            
+
+            university_id = get_or_create_organization(adapter['university'], 'university')
+            get_or_create_relationship(None, university_id)
+
+            institute_id = get_or_create_organization(adapter['institute'], 'institute')
+            get_or_create_relationship(university_id, institute_id)
+
+            if adapter['cathedras']:
+                for cathedra in adapter['cathedras']:
+                    cathedra_id = get_or_create_organization(cathedra, 'cathedra')
+                    get_or_create_relationship(institute_id, cathedra_id)
+                    get_or_create_relationship(cathedra_id, None)
+            else:
+                get_or_create_relationship(institute_id, None)
             
 
         return item
