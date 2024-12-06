@@ -31,7 +31,7 @@ class SggwscraperPipeline:
                 value=adapter.get(field_name)
                 if value and isinstance(value, str):
                     adapter[field_name]=value.strip()
-                if isinstance(value, str) and try_parse_int(value) and field_name!='publication_date':
+                if isinstance(value, str) and try_parse_int(value) and field_name not in ['publication_date', 'vol']:
                     adapter[field_name]=int(value)
                 if isinstance(value, list):
                     for v in value:
@@ -60,17 +60,25 @@ class SggwscraperPipeline:
 
         elif isinstance(item, publicationItem):
             field_names=adapter.field_names()
+            
+            
+            def get_author_id_from_url(url):
+                result=url.split('WULS')[1].split('?')
+                return "WULS"+result[0]
+            
             authors=adapter.get('authors')
-
-            for i in range(len(authors)):
-                for k in range(len(authors[i])):
-                    if isinstance(authors[i][k], str):
-                        adapter['authors'][i][k]=authors[i][k].strip()
+            adapter['authors']=[get_author_id_from_url(link) for link in authors]
+            
 
             clean_str_int(field_names, adapter)
+
             pub_date=adapter.get('publication_date')
             if pub_date:
                 adapter['publication_date']=pub_date+'-01-01'
+
+            adapter['title']+=', vol: '+adapter.get('vol') if adapter.get('vol') else ''
+
+            
 
         elif isinstance(item, organizationItem):
             field_names=adapter.field_names()
@@ -104,7 +112,7 @@ class SaveToDataBase:
         
         adapter=ItemAdapter(item)
         
-        if isinstance(item, ScientistItem):
+        if False:#isinstance(item, ScientistItem):
             #scientist table
             self.cursor.execute("""
                 SELECT
@@ -296,7 +304,14 @@ class SaveToDataBase:
                 return self.cursor.fetchone()[0]
 
             def get_or_create_publication(tittle, publisher, publication_date):
-                self.cursor.execute("""SELECT id FROM publications WHERE title like %s AND publisher like %s AND publication_date like %s;""", (tittle, publisher, publication_date))
+                if publisher is None:
+                    self.cursor.execute("""SELECT id FROM publications WHERE title like %s AND publisher is NULL AND publication_date = %s;""", (tittle, publication_date))
+                elif publication_date is None:
+                    self.cursor.execute("""SELECT id FROM publications WHERE title like %s AND publisher like %s AND publication_date is NULL;""", (tittle, publisher))
+                elif publisher is None and publication_date is None:
+                    self.cursor.execute("""SELECT id FROM publications WHERE title like %s AND publisher is NULL AND publication_date is NULL;""", (tittle,))
+                else:
+                    self.cursor.execute("""SELECT id FROM publications WHERE title like %s AND publisher like %s AND publication_date = %s;""", (tittle, publisher, publication_date))
                 result=self.cursor.fetchone()
                 if result:
                     return result[0]
@@ -307,18 +322,16 @@ class SaveToDataBase:
                 self.cursor.execute("""
                     INSERT INTO 
                     scientists_publications 
-                    (scientist_id, publication_id, ) 
+                    (scientist_id, publication_id) 
                     VALUES (%s, %s) RETURNING id;""", 
                     (scientist_id, publication_id))
                 return self.cursor.fetchone()[0]
 
             def get_or_create_author_publications(scientist_id, publication_id):
                 self.cursor.execute("""
-                    SELECT s.id 
-                    FROM scientists s 
-                    INNER JOIN 
-                    scientists_publications sp ON s.id=sp.scientist_id 
-                    WHERE s.id=%s AND publication_id=%s;""", 
+                    SELECT scientist_id 
+                    FROM scientists_publications
+                    WHERE scientist_id=%s AND publication_id=%s;""", 
                     (scientist_id, publication_id))
                 result=self.cursor.fetchone()
                 if result:
@@ -327,10 +340,15 @@ class SaveToDataBase:
                     return add_author_to_publications(scientist_id, publication_id)
                 
             if adapter['authors']:
-                pass
-                #for full_name in adapter['authors']:
-                    #self.cursor.execute("SELECT id FROM scientists WHERE first_name = %s AND last_name = %s;", (full_name[0], full_name[1]))
-
+                for author_id in adapter['authors']:
+                    self.cursor.execute("SELECT id FROM scientists WHERE profile_url like %s;", ('%'+author_id+'%',))
+                    result=self.cursor.fetchone()
+                    if result:
+                        scientist_id=result[0]
+                        publication_id=get_or_create_publication(adapter['title'], adapter['publisher'], adapter['publication_date'])
+                        get_or_create_author_publications(scientist_id, publication_id)
+                
+            '''
             self.cursor.execute("""
                 SELECT
                     p.id,
@@ -406,7 +424,7 @@ class SaveToDataBase:
                                 publication_id
                             ))
                                 
-            
+            '''
         elif isinstance(item, organizationItem):
             
             def add_organization(name, organization_type):

@@ -114,7 +114,7 @@ DOWNLOADER_MIDDLEWARES = {
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
     "sggwScraper.pipelines.SggwscraperPipeline": 700,
-    #'sggwScraper.pipelines.SaveToDataBase': 800,
+    'sggwScraper.pipelines.SaveToDataBase': 800,
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)

@@ -205,7 +205,7 @@ class SggwSpider(scrapy.Spider):
         
     async def parse_publication_page(self, response):
         page = response.meta['playwright_page']
-        total_pages = 1#int(response.css('span.entitiesDataListTotalPages::text').get().replace(',', ''))
+        total_pages = 0#int(response.css('span.entitiesDataListTotalPages::text').get().replace(',', ''))
         
         #Generate requests for each page based on the total number of pages
         for page_number in range(1, total_pages + 1):
@@ -250,9 +250,8 @@ class SggwSpider(scrapy.Spider):
         try:
             
             authors_selector = response.css('div.authorListElement>a::attr(href)').getall() or None
-            authors_links=[self.bw_url+link for link in authors_selector ]
-            print(response.url)
-            print(authors_links)
+            if authors_selector:
+                authors_selector=[self.bw_url+link for link in authors_selector]
             '''
             if authors_selector:
                 for author in authors_selector:
@@ -285,15 +284,15 @@ class SggwSpider(scrapy.Spider):
             valid_dates=[date for date in pub_dates if date and date.strip()!='0' and date.strip()!='']
             publication['publication_date'] = valid_dates[0] if valid_dates else None
             
-            publication['authors']=authors_links
+            publication['authors']=authors_selector
 
             vol=response.xpath('//dl[contains(@class, "table2ColsContainer")]//dt[span[contains(text(), "Vol")]]/following-sibling::dd[1]/div/text()').get()
             edition=response.xpath('//dl[contains(@class, "table2ColsContainer")]//dt[span[contains(text(), "Edition")]]/following-sibling::dd[1]/text()').get()
             parts=[vol, edition]
             publication['vol']= parts[0] if parts else None
 
-            
-            yield publication
+            if authors_selector:
+                yield publication
         except Exception as e:
             self.logger.error(f"Failed to process {response.url}: {str(e)}")
             print(f'Error in parsing publication, {e} {response.url}')
