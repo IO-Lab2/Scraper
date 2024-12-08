@@ -34,12 +34,19 @@ class PunktozaSpiderSpider(scrapy.Spider):
             table_rows = response.css("table#DataTables_Table_0 tbody tr.even, table#DataTables_Table_0 tbody tr.odd")
             for row in table_rows:
                 journal_name = row.css('td.dt-head-center.dt-head-nowrap.dtr-control a::text').get()
-                if_points = row.css("td.dt-right.dt-head-center.dt-head-nowrap::text").get() + row.css('td.dt-right.dt-head-center.dt-head-nowrap span::text').get()
+                bigger_number = row.css("td.dt-right.dt-head-center.dt-head-nowrap::text").get() if row.css("td.dt-right.dt-head-center.dt-head-nowrap::text").get() else 0
+                smaller_number = (row.css('td.dt-right.dt-head-center.dt-head-nowrap span::text').get()) if row.css("td.dt-right.dt-head-center.dt-head-nowrap::text").get() else 0
+                if_points = bigger_number + smaller_number
+                publisher = row.css('td.dt-head-center.dt-head-nowrap.dtr-control span[title="Scopus"]::text').get()
+                journal_type = row.css('td.dt-center.dt-head-center.dt-head-nowrap[style="font-size: 85%; vertical-align: middle;"]:not(:has(*))::text').get()
 
                 if journal_name and if_points:
                 # Store and yield scraped data
                     journals["name"] = journal_name
                     journals["if_points"] = if_points
+                    journals["publisher"] = publisher
+                    journals["journal_type"] = journal_type
+
                     yield journals
 
             # Click pagination's next page button

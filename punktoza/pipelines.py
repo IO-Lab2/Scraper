@@ -32,15 +32,27 @@ class PunktozaPipeline:
 
         journal = adapter.get("name")
         impact_factor = adapter.get("if_points")
+        publisher = adapter.get("publisher")
+        journal_type = adapter.get("journal_type")
 
         if journal and impact_factor:
-            update_query = """
-            UPDATE publications
-            SET impact_factor = %s
-            WHERE journal = %s AND journal_impact_factor = 0;
-        """
+            if publisher:
+                update_query = """
+                UPDATE publications
+                SET journal_impact_factor = %s,
+                    publisher = %s,
+                    journal_type = %s
+                WHERE journal = %s;
+            """
+            else:
+                update_query = """
+                UPDATE publications
+                SET journal_impact_factor = %s,
+                    journal_type = %s
+                WHERE journal = %s;
+            """
             try:
-                self.cur.execute(update_query, (impact_factor, journal))
+                self.cur.execute(update_query, (impact_factor, publisher, journal_type, journal))
                 self.connection.commit()    
                 spider.logger.info(f"Updated impact_factor for journal: {journal}")
 

@@ -9,4 +9,5 @@ import scrapy
 class JournalItem(scrapy.Item):
     name = scrapy.Field()
     if_points = scrapy.Field()
-    
+    publisher = scrapy.Field()
+    journal_type = scrapy.Field()
