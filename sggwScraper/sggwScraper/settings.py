@@ -13,9 +13,11 @@ SPIDER_MODULES = ["sggwScraper.spiders"]
 NEWSPIDER_MODULE = "sggwScraper.spiders"
 
 #Playwright settings
+
 #PLAYWRIGHT_PROCESS_REQUEST_HEADERS=None
-#PLAYWRIGHT_MAX_CONTEXTS = 4
+#PLAYWRIGHT_MAX_CONTEXTS = 20
 PLAYWRIGHT_LAUNCH_OPTIONS={"headless": False, "timeout": 30 * 1000, "args": ["--no-sandbox", "--disable-setuid-sandbox"]}
+PLAYWRIGHT_DEFAULT_NAVIGATION_TIMEOUT = 180000
 
 DOWNLOAD_HANDLERS = {
     "http": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
@@ -34,11 +36,11 @@ ROBOTSTXT_OBEY = False
 RETRY_ENABLED = True
 RETRY_HTTP_CODES = [500]
 RETRY_TIMES = 5
-PLAYWRIGHT_DEFAULT_NAVIGATION_TIMEOUT = 300000
+
 
 
 LOG_ENABLED = True
-LOG_LEVEL = 'ERROR'  # Zapisuj tylko błędy, lub użyj 'DEBUG'/'INFO' dla bardziej szczegółowych logów
+LOG_LEVEL = 'INFO'  # Zapisuj tylko błędy, lub użyj 'DEBUG'/'INFO' dla bardziej szczegółowych logów
 LOG_FILE = "scrapy_errors.log"  # Plik, do którego będą zapisywane logi
 
 # Włączenie Autothrottle
@@ -48,11 +50,10 @@ AUTOTHROTTLE_ENABLED = True
 AUTOTHROTTLE_START_DELAY = 0.2
 
 # Maksymalne opóźnienie w przypadku przeciążenia serwera
-AUTOTHROTTLE_MAX_DELAY = 60
+AUTOTHROTTLE_MAX_DELAY = 10
 
 # Docelowa liczba żądań równoczesnych na serwer
 AUTOTHROTTLE_TARGET_CONCURRENCY = 4
-
 # Włączenie logowania, aby monitorować działanie Autothrottle
 AUTOTHROTTLE_DEBUG = False
 
@@ -97,7 +98,7 @@ PLAYWRIGHT_CONTEXTS={
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 DOWNLOADER_MIDDLEWARES = {
     "sggwScraper.middlewares.SggwscraperDownloaderMiddleware": 543,
-    'scrapy_user_agents.middlewares.RandomUserAgentMiddleware': 555,
+    #'scrapy_user_agents.middlewares.RandomUserAgentMiddleware': 555,
     #'rotating_proxies.middlewares.RotatingProxyMiddleware': 610,
     #'rotating_proxies.middlewares.BanDetectionMiddleware': 620
 }

@@ -205,7 +205,7 @@ class SggwSpider(scrapy.Spider):
         
     async def parse_publication_page(self, response):
         page = response.meta['playwright_page']
-        total_pages = 0#int(response.css('span.entitiesDataListTotalPages::text').get().replace(',', ''))
+        total_pages = int(response.css('span.entitiesDataListTotalPages::text').get().replace(',', ''))
         
         #Generate requests for each page based on the total number of pages
         for page_number in range(1, total_pages + 1):
@@ -298,7 +298,7 @@ class SggwSpider(scrapy.Spider):
             print(f'Error in parsing publication, {e} {response.url}')
         finally:
             
-            await asyncio.sleep(0.2)
+            #await asyncio.sleep(0.2)
             await page.close()
             
     async def errback(self, failure):

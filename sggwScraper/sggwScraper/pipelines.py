@@ -303,20 +303,20 @@ class SaveToDataBase:
                     (title, publisher, publication_date, 0))
                 return self.cursor.fetchone()[0]
 
-            def get_or_create_publication(tittle, publisher, publication_date):
-                if publisher is None:
-                    self.cursor.execute("""SELECT id FROM publications WHERE title like %s AND publisher is NULL AND publication_date = %s;""", (tittle, publication_date))
-                elif publication_date is None:
-                    self.cursor.execute("""SELECT id FROM publications WHERE title like %s AND publisher like %s AND publication_date is NULL;""", (tittle, publisher))
-                elif publisher is None and publication_date is None:
-                    self.cursor.execute("""SELECT id FROM publications WHERE title like %s AND publisher is NULL AND publication_date is NULL;""", (tittle,))
+            def get_or_create_publication(title, publisher, publication_date):
+                if publisher is None and publication_date and title:
+                    self.cursor.execute("""SELECT id FROM publications WHERE title like %s AND publisher is NULL AND publication_date = %s;""", (title, publication_date))
+                elif publication_date is None and publisher and title:
+                    self.cursor.execute("""SELECT id FROM publications WHERE title like %s AND publisher like %s AND publication_date is NULL;""", (title, publisher))
+                elif publisher is None and publication_date is None and title:
+                    self.cursor.execute("""SELECT id FROM publications WHERE title like %s AND publisher is NULL AND publication_date is NULL;""", (title,))
                 else:
-                    self.cursor.execute("""SELECT id FROM publications WHERE title like %s AND publisher like %s AND publication_date = %s;""", (tittle, publisher, publication_date))
+                    self.cursor.execute("""SELECT id FROM publications WHERE title like %s AND publisher like %s AND publication_date = %s;""", (title, publisher, publication_date))
                 result=self.cursor.fetchone()
                 if result:
                     return result[0]
                 else:
-                    return add_publication(tittle, publisher, publication_date)
+                    return add_publication(title, publisher, publication_date)
 
             def add_author_to_publications(scientist_id, publication_id):
                 self.cursor.execute("""
@@ -347,84 +347,9 @@ class SaveToDataBase:
                         scientist_id=result[0]
                         publication_id=get_or_create_publication(adapter['title'], adapter['publisher'], adapter['publication_date'])
                         get_or_create_author_publications(scientist_id, publication_id)
+            self.conn.commit()
                 
-            '''
-            self.cursor.execute("""
-                SELECT
-                    p.id,
-                    title,
-                    journal,
-                    publication_date
-                FROM publications p 
-                INNER JOIN scientists_publications sp ON p.id = sp.publication_id
-                WHERE title like %s AND journal like %s AND publication_date like %s;                
-            """,
-            (
-                adapter['title'],
-                adapter['journal'],
-                adapter['publication_date']
-            ))
-                
-            publication_in_db=self.cursor.fetchone()
-
-            if publication_in_db:
-                self.cursor.execute("""
-                    SELECT 
-                        first_name, 
-                        last_name 
-                    FROM scientists_publications sp 
-                    INNER JOIN scientists s ON sp.scientist_id=s.id 
-                    WHERE publication_id = %s;
-                    """,( 
-                    publication_in_db[0],))
-
-            else:
-                self.cursor.execute("""
-                    
-                    INSERT INTO
-                    publications (
-                        title,
-                        journal,
-                        publication_date,
-                        journal_impact_factor
-                    )
-                    VALUES (
-                            %s,
-                            %s,
-                            %s,
-                            %s
-                            ) RETURNING id;
-                    """,
-                    (
-                        adapter['title'],
-                        adapter['journal'],
-                        adapter['publication_date'],
-                        0
-                    ))
-                publication_id=self.cursor.fetchone()[0]
-
-                for full_name in adapter['authors']:
-                    self.cursor.execute("SELECT id FROM scientists WHERE first_name = %s AND last_name = %s;", (full_name[0], full_name[1]))
-                    author_id=self.cursor.fetchone()
-                    if author_id:
-                        self.cursor.execute(
-                            """
-                            INSERT INTO
-                            scientists_publications (
-                                scientist_id,
-                                publication_id
-                            )
-                            VALUES (
-                                    %s,
-                                    %s
-                                    );
-                            """,
-                            (
-                                author_id[0],
-                                publication_id
-                            ))
-                                
-            '''
+            
         elif isinstance(item, organizationItem):
             
             def add_organization(name, organization_type):
