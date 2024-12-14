@@ -4,7 +4,7 @@ import logging
 import json
 import random
 from scrapy_playwright.page import PageMethod
-from sggwScraper.items import ScientistItem, organizationItem, publicationItem
+from sggwScraper.items import publicationItem
 
 logging.getLogger('asyncio').setLevel(logging.CRITICAL)
 
@@ -34,10 +34,15 @@ class PublicationsSpider(scrapy.Spider):
 
     def start_requests(self):
         
+        yield scrapy.Request(url=self.bw_url, 
+            callback=self.parse_pages,
+                meta=dict(playwright=True, playwright_include_page=True, playwright_context="pages",))
         
+    async def parse_pages(self, response):
+        page=response.meta['playwright_page']
         #Generate requests for each page based on the total number of pages
-        for page_number in range(self.total_pages[0], self.total_pages[-1]):
-            page_url = f'https://bw.sggw.edu.pl/globalResultList.seam?r=publication&tab=PUBLICATION&lang=en&p={''.join([chr(random.randint(97,122)) for i in range(3)])}&pn={page_number}'
+        for page_number in range(self.total_pages[0], self.total_pages[-1]+1):
+            page_url = f'https://bw.sggw.edu.pl/globalResultList.seam?r=publication&tab=PUBLICATION&lang=en&p=bst&pn={page_number}'
             yield scrapy.Request(url=page_url,
                 callback=self.parse_publications_links,
                 meta=dict(
@@ -49,7 +54,7 @@ class PublicationsSpider(scrapy.Spider):
                         ],
                     errback=self.errback
             ))
-
+        await page.close()
     async def parse_publications_links(self, response):
         page = response.meta['playwright_page']
         

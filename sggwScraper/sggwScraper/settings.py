@@ -17,7 +17,7 @@ NEWSPIDER_MODULE = "sggwScraper.spiders"
 #PLAYWRIGHT_PROCESS_REQUEST_HEADERS=None
 #PLAYWRIGHT_MAX_CONTEXTS = 20
 PLAYWRIGHT_LAUNCH_OPTIONS={
-    "headless": True, 
+    "headless": False, 
     "args": [
         "--disable-gpu",
         "--disable-dev-shm-usage",
