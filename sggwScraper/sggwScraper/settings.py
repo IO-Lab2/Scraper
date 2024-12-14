@@ -16,7 +16,19 @@ NEWSPIDER_MODULE = "sggwScraper.spiders"
 
 #PLAYWRIGHT_PROCESS_REQUEST_HEADERS=None
 #PLAYWRIGHT_MAX_CONTEXTS = 20
-PLAYWRIGHT_LAUNCH_OPTIONS={"headless": False, "timeout": 30 * 1000, "args": ["--no-sandbox", "--disable-setuid-sandbox"]}
+PLAYWRIGHT_LAUNCH_OPTIONS={
+    "headless": True, 
+    "args": [
+        "--disable-gpu",
+        "--disable-dev-shm-usage",
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-extensions",
+        "--disable-background-networking",
+        "--disable-background-timer-throttling",
+        "--disable-renderer-backgrounding",
+    ],
+    }
 PLAYWRIGHT_DEFAULT_NAVIGATION_TIMEOUT = 180000
 
 DOWNLOAD_HANDLERS = {
@@ -50,7 +62,7 @@ AUTOTHROTTLE_ENABLED = True
 AUTOTHROTTLE_START_DELAY = 0.2
 
 # Maksymalne opóźnienie w przypadku przeciążenia serwera
-AUTOTHROTTLE_MAX_DELAY = 10
+AUTOTHROTTLE_MAX_DELAY = 30
 
 # Docelowa liczba żądań równoczesnych na serwer
 AUTOTHROTTLE_TARGET_CONCURRENCY = 4
@@ -60,6 +72,7 @@ AUTOTHROTTLE_DEBUG = False
 
 
 PLAYWRIGHT_CONTEXTS={
+    "pages":{},
     "people":{},
     "publication":{}
 }

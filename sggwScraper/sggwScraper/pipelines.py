@@ -98,6 +98,8 @@ class SaveToDataBase:
             port=os.getenv("PGPORT")
         )
         self.cursor = self.conn.cursor()
+
+        print(f'SPIDER: {spider.name} STARTED')
         
         
 
@@ -112,7 +114,7 @@ class SaveToDataBase:
         
         adapter=ItemAdapter(item)
         
-        if False:#isinstance(item, ScientistItem):
+        if isinstance(item, ScientistItem):
             #scientist table
             self.cursor.execute("""
                 SELECT
@@ -123,7 +125,7 @@ class SaveToDataBase:
                     research_area,
                     email,
                     profile_url,
-                    college,
+                    position,
                     h_index_wos,
                     h_index_scopus,
                     publication_count,
@@ -159,7 +161,7 @@ class SaveToDataBase:
                             email = %s,
                             profile_url = %s,
                             updated_at = CURRENT_TIMESTAMP,
-                            college=%s
+                            position=%s
                         WHERE id = %s;
                         """, 
                     (
@@ -169,7 +171,7 @@ class SaveToDataBase:
                         adapter['research_area'],
                         adapter['email'],
                         adapter['profile_url'],
-                        adapter['college'],
+                        adapter['position'],
                         scientist_id
                     ))
                 elif scientist_in_db[8:-1]!=scientistFields[7:-1]:
@@ -219,7 +221,7 @@ class SaveToDataBase:
                         research_area,
                         email,
                         profile_url,
-                        college
+                        position
                     )
                     VALUES (
                             %s,
@@ -238,7 +240,7 @@ class SaveToDataBase:
                         adapter['research_area'],
                         adapter['email'],
                         adapter['profile_url'],
-                        adapter['college']
+                        adapter['position']
                     ))
                 
                 scientist_id=self.cursor.fetchone()[0]

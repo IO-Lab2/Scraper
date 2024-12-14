@@ -3,6 +3,7 @@
 # See documentation in:
 # https://docs.scrapy.org/en/latest/topics/items.html
 
+from turtle import position
 import scrapy
 
 
@@ -13,7 +14,7 @@ class ScientistItem(scrapy.Item):
     research_area = scrapy.Field()
     email = scrapy.Field()
     profile_url = scrapy.Field()
-    college=scrapy.Field()
+    position=scrapy.Field()
     h_index_scopus = scrapy.Field()
     h_index_wos = scrapy.Field()
     publication_count = scrapy.Field()
