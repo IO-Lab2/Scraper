@@ -40,8 +40,20 @@ class PublicationsSpider(scrapy.Spider):
         
     async def parse_pages(self, response):
         page=response.meta['playwright_page']
+        #await page.content()
+        await page.goto('https://bw.sggw.edu.pl/globalResultList.seam?r=publication&tab=PUBLICATION&lang=en')
+        await page.content()
+        
+        #await page.click('input#entitiesT\\:j_id_2_35_2_c_2_3u\\:2', force=True)
+        #await page.wait_for_selector('span.entitiesDataListTotalPages')
+        total_pages = await page.evaluate('''
+                parseInt(document.querySelector('span.entitiesDataListTotalPages').innerText.replace(',', ''))
+            ''')
+        
+    
+
         #Generate requests for each page based on the total number of pages
-        for page_number in range(self.total_pages[0], self.total_pages[-1]+1):
+        for page_number in range(1, total_pages+1):
             page_url = f'https://bw.sggw.edu.pl/globalResultList.seam?r=publication&tab=PUBLICATION&lang=en&p=bst&pn={page_number}'
             yield scrapy.Request(url=page_url,
                 callback=self.parse_publications_links,
@@ -62,22 +74,11 @@ class PublicationsSpider(scrapy.Spider):
         publications_urls=response.css('div.entity-row-heading-wrapper>h5>a::attr(href)').getall()
 
         for pub in publications_urls:
-            yield scrapy.Request(self.bw_url+pub, callback=self.parse_publication,
-                meta=dict(
-                playwright=True,
-                playwright_include_page=True,
-                playwright_context="publication",
-                playwright_page_methods =[
-                    PageMethod('wait_for_selector', 'div.publicationShortInfo', state='visible'),
-                    PageMethod('wait_for_selector', 'dl.table2ColsContainer dt', state='visible'),
-                    PageMethod('wait_for_selector', 'dl.table2ColsContainer dd', state='visible')
-                    ],
-                errback=self.errback
-                ))
+            yield scrapy.Request(self.bw_url+pub, callback=self.parse_publication)
         await page.close()
     
     async def parse_publication(self, response):
-        page = response.meta['playwright_page']
+        #page = response.meta['playwright_page']
         
         try:
             
@@ -128,10 +129,10 @@ class PublicationsSpider(scrapy.Spider):
         except Exception as e:
             self.logger.error(f"Failed to process {response.url}: {str(e)}")
             print(f'Error in parsing publication, {e} {response.url}')
-        finally:
+        #finally:
             
             #await asyncio.sleep(0.2)
-            await page.close()
+            #await page.close()
             
     async def errback(self, failure):
         
