@@ -22,15 +22,22 @@ class SggwSpider(scrapy.Spider):
 
     custom_settings = {
         'PLAYWRIGHT_ABORT_REQUEST': should_abort_request,
-
+        'AUTOTHROTTLE_ENABLED': True,
+        # The initial download delay
+        'AUTOTHROTTLE_START_DELAY': 0.2,
+        # The maximum download delay to be set in case of high latencies
+        'AUTOTHROTTLE_MAX_DELAY': 60,
+        # The average number of requests Scrapy should be sending in parallel to
+        # each remote server
+        'AUTOTHROTTLE_TARGET_CONCURRENCY': 4,
+        # Enable showing throttling stats for every response received:
+        'AUTOTHROTTLE_DEBUG': False
     }
 
     bw_url='https://bw.sggw.edu.pl'
     
     def parse(self, response):
         #disciplines=response.css('a.omega-discipline::text').getall()
-        
-        
 
         categories_links=response.css('a.global-stats-link::attr(href)').getall()
         categories_names=response.css('span.global-stats-description::text').getall()
@@ -95,7 +102,7 @@ class SggwSpider(scrapy.Spider):
             yield organization
 
         
-        total_pages=0#int(response.css('span.entitiesDataListTotalPages::text').get())
+        total_pages=int(response.css('span.entitiesDataListTotalPages::text').get())
 
         with open('data.json', 'r') as f:
             existing_data = json.load(f)
@@ -155,15 +162,14 @@ class SggwSpider(scrapy.Spider):
                 academic_title=name_title[2]
                 scientist['academic_title']= academic_title
             
-            research_area=response.css('div.researchFieldsPanel ul.ul-element-wcag li span::text').getall()
-            scientist['research_area']=research_area or None
+            
             
             
             scientist['email']= personal_data.css('p.authorContactInfoEmailContainer>a::text').get() or None
             
 
             scientist['profile_url']= response.url
-            scientist['position']=personal_data.css('p.possitionInfo>span::text')
+            scientist['position']=personal_data.css('p.possitionInfo span::text').get() or None
 
             scientist['h_index_scopus']=response.xpath('//li[@class="hIndexItem"][span[contains(text(), "Scopus")]]//a/text()').get() or 0
             
@@ -174,6 +180,7 @@ class SggwSpider(scrapy.Spider):
 
             if response.css('ul.bibliometric-data-list li>span.indicatorName'):
                 #loading spinner ui-outputpanel-loading ui-widget
+
                 await page.wait_for_function(
                                     """() => {
                                         const element = document.querySelector('div#j_id_3_1q_1_1_8_6n_a_2');
@@ -191,7 +198,11 @@ class SggwSpider(scrapy.Spider):
 
             organization_scientist=personal_data.css('ul.authorAffilList li span a>span::text').getall() or None
             if organization_scientist:
-                scientist['organization']=organization_scientist[0]
+                scientist['organization']=organization_scientist
+
+
+            research_area=response.css('div.researchFieldsPanel ul.ul-element-wcag li span::text').getall()
+            scientist['research_area']=research_area or None
 
             if research_area and academic_title:
                 yield scientist

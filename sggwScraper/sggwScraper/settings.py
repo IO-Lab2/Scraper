@@ -55,19 +55,7 @@ LOG_ENABLED = True
 LOG_LEVEL = 'INFO'  # Zapisuj tylko błędy, lub użyj 'DEBUG'/'INFO' dla bardziej szczegółowych logów
 LOG_FILE = "scrapy_errors.log"  # Plik, do którego będą zapisywane logi
 
-# Włączenie Autothrottle
-AUTOTHROTTLE_ENABLED = True
 
-# Początkowe opóźnienie między żądaniami
-AUTOTHROTTLE_START_DELAY = 0.2
-
-# Maksymalne opóźnienie w przypadku przeciążenia serwera
-AUTOTHROTTLE_MAX_DELAY = 30
-
-# Docelowa liczba żądań równoczesnych na serwer
-AUTOTHROTTLE_TARGET_CONCURRENCY = 4
-# Włączenie logowania, aby monitorować działanie Autothrottle
-AUTOTHROTTLE_DEBUG = False
 
 
 
@@ -79,12 +67,12 @@ PLAYWRIGHT_CONTEXTS={
 
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
-#CONCURRENT_REQUESTS =32
+CONCURRENT_REQUESTS =32
 
 # Configure a delay for requests for the same website (default: 0)
 # See https://docs.scrapy.org/en/latest/topics/settings.html#download-delay
 # See also autothrottle settings and docs
-#DOWNLOAD_DELAY = 0.2
+#DOWNLOAD_DELAY = 5
 # The download delay setting will honor only one of:
 #CONCURRENT_REQUESTS_PER_DOMAIN = 16
 #CONCURRENT_REQUESTS_PER_IP = 16
@@ -111,6 +99,8 @@ PLAYWRIGHT_CONTEXTS={
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 DOWNLOADER_MIDDLEWARES = {
     "sggwScraper.middlewares.SggwscraperDownloaderMiddleware": 543,
+    #"sggwScraper.middlewares.PublicationPlaywrightDelayMiddleWare": 544,
+
     #'scrapy_user_agents.middlewares.RandomUserAgentMiddleware': 555,
     #'rotating_proxies.middlewares.RotatingProxyMiddleware': 610,
     #'rotating_proxies.middlewares.BanDetectionMiddleware': 620
@@ -128,7 +118,7 @@ DOWNLOADER_MIDDLEWARES = {
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
     "sggwScraper.pipelines.SggwscraperPipeline": 700,
-    #'sggwScraper.pipelines.SaveToDataBase': 800,
+    'sggwScraper.pipelines.SaveToDataBase': 800,
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)

@@ -1,12 +1,10 @@
 import scrapy
-import asyncio
 import logging
-import json
-import random
+import asyncio
 from scrapy_playwright.page import PageMethod
 from sggwScraper.items import publicationItem
 
-logging.getLogger('asyncio').setLevel(logging.CRITICAL)
+#logging.getLogger('asyncio').setLevel(logging.CRITICAL)
 
 def should_abort_request(request):
     return (
@@ -25,13 +23,6 @@ class PublicationsSpider(scrapy.Spider):
 
     bw_url='https://bw.sggw.edu.pl'
 
-    with open('data.json') as f:
-            data = json.load(f)
-
-        
-    total_pages = data['publications_pages']
-
-
     def start_requests(self):
         
         yield scrapy.Request(url=self.bw_url, 
@@ -40,60 +31,60 @@ class PublicationsSpider(scrapy.Spider):
         
     async def parse_pages(self, response):
         page=response.meta['playwright_page']
-        #await page.content()
+
         await page.goto('https://bw.sggw.edu.pl/globalResultList.seam?r=publication&tab=PUBLICATION&lang=en')
         await page.content()
-        
-        #await page.click('input#entitiesT\\:j_id_2_35_2_c_2_3u\\:2', force=True)
-        #await page.wait_for_selector('span.entitiesDataListTotalPages')
-        total_pages = await page.evaluate('''
-                parseInt(document.querySelector('span.entitiesDataListTotalPages').innerText.replace(',', ''))
-            ''')
-        
-    
 
+        total_pages = await page.evaluate("parseInt(document.querySelector('span.entitiesDataListTotalPages').innerText.replace(',', ''))")
+        
         #Generate requests for each page based on the total number of pages
         for page_number in range(1, total_pages+1):
             page_url = f'https://bw.sggw.edu.pl/globalResultList.seam?r=publication&tab=PUBLICATION&lang=en&p=bst&pn={page_number}'
+            
             yield scrapy.Request(url=page_url,
                 callback=self.parse_publications_links,
                 meta=dict(
                     playwright=True, 
                     playwright_include_page=True,
                     playwright_context="pages",
-                    playwright_page_methods=[
-                        PageMethod('wait_for_selector', 'div.entity-row-heading-wrapper h5 a', state='visible')
-                        ],
+                    publication_delay=True,
                     errback=self.errback
-            ))
+                ))
+            await asyncio.sleep(1)
+
         await page.close()
+
     async def parse_publications_links(self, response):
-        page = response.meta['playwright_page']
-        
+        try:
+            page = response.meta['playwright_page']
+            await page.wait_for_selector('div.entity-row-heading-wrapper h5 a', state='visible')
+            publications_urls=response.css('div.entity-row-heading-wrapper>h5>a::attr(href)').getall()
 
-        publications_urls=response.css('div.entity-row-heading-wrapper>h5>a::attr(href)').getall()
+            for pub in publications_urls:
+                yield scrapy.Request(self.bw_url+pub, callback=self.parse_publication)
+            await page.close()
 
-        for pub in publications_urls:
-            yield scrapy.Request(self.bw_url+pub, callback=self.parse_publication)
-        await page.close()
+        except Exception as e:
+            print(f'Error in parse_publications_links, {e} {response.url}')
+            yield scrapy.Request(response.url, callback=self.parse_publications_links, 
+                    dont_filter=True,
+                    meta=dict(
+                        playwright=True, 
+                        playwright_include_page=True,
+                        playwright_context="pages",
+                        errback=self.errback
+                    ))
     
-    async def parse_publication(self, response):
-        #page = response.meta['playwright_page']
+    def parse_publication(self, response):
         
         try:
             
             authors_selector = response.css('div.authorListElement>a::attr(href)').getall() or None
             if authors_selector:
                 authors_selector=[self.bw_url+link for link in authors_selector]
-            '''
-            if authors_selector:
-                for author in authors_selector:
-                    authors.append(author.css('span.authorSimple>span::text').getall())
-            '''
+            
             publication=publicationItem()
 
-            
-            
             publication['title']=response.css('div.publicationShortInfo>h2::text').get() or None
 
 
@@ -124,15 +115,12 @@ class PublicationsSpider(scrapy.Spider):
             parts=[vol, edition]
             publication['vol']= parts[0] if parts else None
 
-            if authors_selector:
+            if authors_selector and publication['title']:
                 yield publication
         except Exception as e:
             self.logger.error(f"Failed to process {response.url}: {str(e)}")
             print(f'Error in parsing publication, {e} {response.url}')
-        #finally:
-            
-            #await asyncio.sleep(0.2)
-            #await page.close()
+        
             
     async def errback(self, failure):
         

@@ -8,13 +8,18 @@
 
 import os
 import psycopg2
-from attrs import field
 from dotenv import load_dotenv
 from itemadapter import ItemAdapter
 from sggwScraper.items import ScientistItem, publicationItem, organizationItem
 
 
 class SggwscraperPipeline:
+    university='Warsaw University of Life Sciences - SGGW'
+
+    def get_author_id_from_url(url):
+                result=url.split('WULS')[1].split('?')
+                return "WULS"+result[0] 
+    
     def process_item(self, item, spider):
 
         adapter=ItemAdapter(item)
@@ -34,10 +39,14 @@ class SggwscraperPipeline:
                 if isinstance(value, str) and try_parse_int(value) and field_name not in ['publication_date', 'vol']:
                     adapter[field_name]=int(value)
                 if isinstance(value, list):
+                    clear_list=[]
                     for v in value:
                         if isinstance(v, str) and try_parse_int(v):
                             adapter[field_name]=[v.strip() if isinstance(v, str) else v for v in value]
-                            
+                        if isinstance(v, str):
+                            clear_list.append(v.strip())
+                            adapter[field_name]=clear_list
+                                              
 
         
 
@@ -52,22 +61,32 @@ class SggwscraperPipeline:
                 adapter['ministerial_score']=ministerial_score.replace(',','')
 
             research_area=adapter.get('research_area')
-            if research_area:
-                adapter['research_area']=', '.join(research_area)
+            if research_area and research_area=='nutrition and food technology (FNT)':
+                adapter['research_area']='food and nutrition technology (FNT)'
+
 
             clean_str_int(field_names, adapter)
 
+            organization=adapter.get('organization')
+            if organization:
+                org_dict={}
+                if len(organization)==2:
+                    org_dict['university']=self.university
+                    org_dict['institute']=organization[1]
+                    org_dict['cathedra']=organization[0]
+                elif len(organization)==1:
+                    org_dict['university']=self.university
+                    org_dict['institute']=organization[0]
+                adapter['organization']=org_dict
 
         elif isinstance(item, publicationItem):
             field_names=adapter.field_names()
             
             
-            def get_author_id_from_url(url):
-                result=url.split('WULS')[1].split('?')
-                return "WULS"+result[0]
+            
             
             authors=adapter.get('authors')
-            adapter['authors']=[get_author_id_from_url(link) for link in authors]
+            adapter['authors']=[self.get_author_id_from_url(link) for link in authors]
             
 
             clean_str_int(field_names, adapter)
@@ -115,110 +134,17 @@ class SaveToDataBase:
         adapter=ItemAdapter(item)
         
         if isinstance(item, ScientistItem):
-            #scientist table
-            self.cursor.execute("""
-                SELECT
-                    s.id,
-                    first_name,
-                    last_name,
-                    academic_title,
-                    research_area,
-                    email,
-                    profile_url,
-                    position,
-                    h_index_wos,
-                    h_index_scopus,
-                    publication_count,
-                    ministerial_score,
-                    name
-                FROM 
-                    scientists s
-                INNER JOIN 
-                    bibliometrics b ON s.id = b.scientist_id
-                INNER JOIN
-                    scientist_organization so ON s.id = so.scientist_id
-                INNER JOIN
-                    organizations o ON so.organization_id = o.id
-                WHERE profile_url like %s;
-                """, (
-                adapter['profile_url'],
-            ))
-            scientist_in_db = self.cursor.fetchone()
-            scientistFields=tuple(ItemAdapter(item).values())
             
+            
+            scientistFields=tuple(ItemAdapter(item).values())
 
-            if scientist_in_db:
-                scientist_id=scientist_in_db[0]
-                if scientist_in_db[1:8]!=scientistFields[:7]:
-                    #update scientist
-                    self.cursor.execute("""
-                        UPDATE scientists
-                        SET
-                            first_name = %s,
-                            last_name = %s,
-                            academic_title = %s,
-                            research_area = %s,
-                            email = %s,
-                            profile_url = %s,
-                            updated_at = CURRENT_TIMESTAMP,
-                            position=%s
-                        WHERE id = %s;
-                        """, 
-                    (
-                        adapter['first_name'],
-                        adapter['last_name'],
-                        adapter['academic_title'],
-                        adapter['research_area'],
-                        adapter['email'],
-                        adapter['profile_url'],
-                        adapter['position'],
-                        scientist_id
-                    ))
-                elif scientist_in_db[8:-1]!=scientistFields[7:-1]:
-                    #update bibliometrics
-                    self.cursor.execute("""
-                        UPDATE bibliometrics
-                        SET
-                            h_index_wos = %s,
-                            h_index_scopus = %s,
-                            publication_count = %s,
-                            ministerial_score = %s,
-                            updated_at = CURRENT_TIMESTAMP
-                        WHERE scientist_id = %s;
-                        """,
-                    (  
-                        adapter['h_index_wos'],
-                        adapter['h_index_scopus'],
-                        adapter['publication_count'],
-                        adapter['ministerial_score'],
-                        scientist_id
-                    ))
-                elif scientist_in_db[-1]!=scientistFields[-1]:
-                    #update organization
-                    self.cursor.execute(f"SELECT id FROM organizations WHERE name like '{adapter['organization']}'")
-                    org_id=self.cursor.fetchone()[0]
-
-                    self.cursor.execute("""
-                        UPDATE scientist_organization
-                        SET
-                            organization_id = %s,
-                            updated_at = CURRENT_TIMESTAMP
-                        WHERE scientist_id = %s;
-                        """,
-                    (
-                        org_id,
-                        scientist_id
-                    ))
-                
-            else:
-                self.cursor.execute("""
-                    
+            def add_scientist():
+                self.cursor.execute(""" 
                     INSERT INTO
                     scientists (
                         first_name,
                         last_name,
                         academic_title,
-                        research_area,
                         email,
                         profile_url,
                         position
@@ -229,70 +155,210 @@ class SaveToDataBase:
                             %s,
                             %s,
                             %s,
-                            %s,
+                            %s
+                            ) RETURNING id;
+                    """,scientistFields[:6])  
+                
+                return self.cursor.fetchone()[0]
+                                     
+            def update_or_create_scientist():
+                wuls=SggwscraperPipeline.get_author_id_from_url(adapter['profile_url'])
+                self.cursor.execute("""
+                    SELECT
+                        id,
+                        first_name,
+                        last_name,
+                        academic_title,
+                        email,
+                        profile_url,
+                        position
+                    FROM scientists
+                    WHERE profile_url like %s;
+                    """, ('%'+wuls+'%',)      
+                )
+
+                scientist_in_db=self.cursor.fetchone()
+                if scientist_in_db:
+                    if scientist_in_db[1:]!=scientistFields[:6]:
+                        #update scientist
+                        self.cursor.execute("""
+                            UPDATE scientists
+                            SET
+                                first_name = %s,
+                                last_name = %s,
+                                academic_title = %s,
+                                email = %s,
+                                profile_url = %s,
+                                updated_at = CURRENT_TIMESTAMP,
+                                position=%s
+                            WHERE id = %s;
+                            """, 
+                        scientistFields[:6]+(scientist_in_db[0],))
+
+                    return scientist_in_db[0]
+                else:
+                    return add_scientist()
+
+            def add_bibliometrics(scientist_id):
+                self.cursor.execute("""
+                        INSERT INTO
+                        bibliometrics (
+                            h_index_wos,
+                            h_index_scopus,
+                            publication_count,
+                            ministerial_score,
+                            scientist_id
+                        )
+                        VALUES (
+                                %s,
+                                %s,
+                                %s,
+                                %s,
+                                %s
+                                );
+                        """,
+                        scientistFields[6:10]+(scientist_id,))
+
+            def update_or_create_bibliometrics(scientist_id):
+                self.cursor.execute("""
+                    SELECT
+                        h_index_wos,
+                        h_index_scopus,
+                        publication_count,
+                        ministerial_score
+                    FROM bibliometrics
+                    WHERE scientist_id = %s;
+                    """, (scientist_id,))
+
+                bibliometrics_in_db=self.cursor.fetchone()
+                if bibliometrics_in_db:
+                    if bibliometrics_in_db!=scientistFields[6:10]:
+                        #update bibliometrics
+                        self.cursor.execute("""
+                            UPDATE bibliometrics
+                            SET
+                                h_index_wos = %s,
+                                h_index_scopus = %s,
+                                publication_count = %s,
+                                ministerial_score = %s,
+                                updated_at = CURRENT_TIMESTAMP
+                            WHERE scientist_id = %s;
+                            """,
+                        scientistFields[6:10]+(scientist_id,))
+                else:
+                    add_bibliometrics(scientist_id)
+            
+            def update_or_create_organization_relationship(scientist_id):
+                
+                for key in adapter['organization']:
+                    
+                    self.cursor.execute(f"SELECT id FROM organizations WHERE name like '{adapter['organization'][key]}';")
+                    org_id=self.cursor.fetchone()[0]
+
+                    self.cursor.execute("""
+                                SELECT organization_id 
+                                FROM scientist_organization so 
+                                INNER JOIN organizations o ON so.organization_id = o.id
+                                WHERE scientist_id = %s AND type=%s;""", (scientist_id, key))
+                    
+                    scientist_in_org=self.cursor.fetchone()
+                    
+                    
+                    if scientist_in_org:
+                        if scientist_in_org[0]!=org_id:
+                            #update organization
+                            self.cursor.execute("""
+                                UPDATE scientist_organization
+                                SET
+                                    organization_id = %s,
+                                    updated_at = CURRENT_TIMESTAMP
+                                WHERE scientist_id = %s;
+                                """,
+                                (
+                                    org_id,
+                                    scientist_id
+                                ))
+                    else:
+                        self.cursor.execute(""" 
+                            INSERT INTO
+                            scientist_organization (
+                                scientist_id,
+                                organization_id
+                            )
+                            VALUES (
+                                    %s,
+                                    %s
+                                    );
+                            """,
+                            (
+                                scientist_id,
+                                org_id
+                            ))
+   
+            def add_research_area(ra_name):
+                self.cursor.execute(""" 
+                    INSERT INTO
+                    research_areas(
+                        name
+                    )
+                    VALUES (
                             %s
                             ) RETURNING id;
                     """,
                     (
-                        adapter['first_name'],
-                        adapter['last_name'],
-                        adapter['academic_title'],
-                        adapter['research_area'],
-                        adapter['email'],
-                        adapter['profile_url'],
-                        adapter['position']
+                        ra_name,
                     ))
-                
-                scientist_id=self.cursor.fetchone()[0]
-
-                self.cursor.execute("""
-                    
-                    INSERT INTO
-                    bibliometrics (
-                        h_index_wos,
-                        h_index_scopus,
-                        publication_count,
-                        ministerial_score,
-                        scientist_id
-                    )
-                    VALUES (
-                            %s,
-                            %s,
-                            %s,
-                            %s,
-                            %s
-                            );
-                    """,
-                    (
-                        adapter['h_index_wos'],
-                        adapter['h_index_scopus'],
-                        adapter['publication_count'],
-                        adapter['ministerial_score'],
-                        scientist_id
-                    ))
+                return self.cursor.fetchone()[0]
             
+            def add_reserach_area_relationship(scientist_id, ra_id):
+                self.cursor.execute(""" 
+                        INSERT INTO
+                        scientists_research_areas (
+                            scientist_id,
+                            research_area_id
+                            )
+                        VALUES (
+                                %s,
+                                %s
+                                );
+                        """,
+                            (
+                                scientist_id,
+                                ra_id
+                            ))
+ 
+            def update_or_create_research_area_relationship(scientist_id):
+                scraped_ra_ids=[]
+                for research_area in adapter['research_area']:
+                    self.cursor.execute(f"SELECT id FROM research_areas WHERE name like '{research_area}';")
+                    ra_id_in_db=self.cursor.fetchone()
+                    if ra_id_in_db:
+                        scraped_ra_ids.append(ra_id_in_db[0])
+                    else:
+                        scraped_ra_ids.append(add_research_area(research_area))
+                
+                self.cursor.execute("SELECT research_area_id FROM scientists_research_areas WHERE scientist_id = %s;", (scientist_id,))
+                selected_ra_ids=[row[0] for row in self.cursor.fetchall()]
 
-                self.cursor.execute(f"SELECT id FROM organizations WHERE name like '{adapter['organization']}'")
-                org_id=self.cursor.fetchone()[0]
+                for ra_id in scraped_ra_ids:
+                    if ra_id not in selected_ra_ids:
+                        add_reserach_area_relationship(scientist_id, ra_id)
+                        
+                            
 
-                if org_id:
-                    self.cursor.execute("""
-                    
-                    INSERT INTO
-                    scientist_organization (
-                        scientist_id,
-                        organization_id
-                    )
-                    VALUES (
-                            %s,
-                            %s
-                            );
-                    """,
-                    (
-                        scientist_id,
-                        org_id
-                    ))
+            #scientist table
+            scientist_id=update_or_create_scientist()
 
+            #bibliometrics table
+            update_or_create_bibliometrics(scientist_id)
+
+            #scientist_organization table
+            update_or_create_organization_relationship(scientist_id)
+
+            #scientist_research_areas table
+            update_or_create_research_area_relationship(scientist_id)
+            
+            
 
         elif isinstance(item, publicationItem):
 
