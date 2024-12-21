@@ -118,12 +118,10 @@ class PublicationsSpider(scrapy.Spider):
             #need to add the rest of the fields
             vol=response.xpath('//dl[contains(@class, "table2ColsContainer")]//dt[span[contains(text(), "Vol")]]/following-sibling::dd[1]/text()').get()
             vol_div=response.xpath('//dl[contains(@class, "table2ColsContainer")]//dt[span[contains(text(), "Vol")]]/following-sibling::dd[1]/div/text()').get()
-            edition=response.xpath('//dl[contains(@class, "table2ColsContainer")]//dt[span[contains(text(), "Edition")]]/following-sibling::dd[1]/text()').get()
-            edition_div=response.xpath('//dl[contains(@class, "table2ColsContainer")]//dt[span[contains(text(), "Edition")]]/following-sibling::dd[1]/div/text()').get()
 
-            parts=[vol_div, edition]
+            parts=[vol, vol_div]
             
-            #parts=[p for p in parts if p and p.strip()!='']
+            parts=[p for p in parts if p and p.strip()!='']
             publication['vol']= parts[0] if parts else None
 
 

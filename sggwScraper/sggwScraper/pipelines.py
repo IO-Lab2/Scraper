@@ -375,10 +375,9 @@ class SaveToDataBase:
                 self.cursor.execute("""
                         SELECT id, journal, ministerial_score
                         FROM publications 
-                        WHERE title = %s 
-                        AND (publisher like %s OR publisher IS NULL) 
+                        WHERE title = %s  
                         AND (publication_date = %s OR publication_date IS NULL)
-                        ;""", (title, publisher, publication_date))
+                        ;""", (title, publication_date))
                 
                 result=self.cursor.fetchone()
                 if result:
