@@ -24,8 +24,10 @@ class ScientistItem(scrapy.Item):
 
 class publicationItem(scrapy.Item):
     title = scrapy.Field()
+    journal = scrapy.Field()
     publisher = scrapy.Field()
     publication_date = scrapy.Field()
+    ministerial_score = scrapy.Field()
     authors = scrapy.Field()
     vol= scrapy.Field()
 

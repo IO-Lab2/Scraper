@@ -23,15 +23,6 @@ class SggwSpider(scrapy.Spider):
     custom_settings = {
         'PLAYWRIGHT_ABORT_REQUEST': should_abort_request,
         'AUTOTHROTTLE_ENABLED': True,
-        # The initial download delay
-        'AUTOTHROTTLE_START_DELAY': 0.2,
-        # The maximum download delay to be set in case of high latencies
-        'AUTOTHROTTLE_MAX_DELAY': 60,
-        # The average number of requests Scrapy should be sending in parallel to
-        # each remote server
-        'AUTOTHROTTLE_TARGET_CONCURRENCY': 4,
-        # Enable showing throttling stats for every response received:
-        'AUTOTHROTTLE_DEBUG': False
     }
 
     bw_url='https://bw.sggw.edu.pl'
@@ -103,14 +94,6 @@ class SggwSpider(scrapy.Spider):
 
         
         total_pages=int(response.css('span.entitiesDataListTotalPages::text').get())
-
-        with open('data.json', 'r') as f:
-            existing_data = json.load(f)
-        if isinstance(existing_data, dict):
-            existing_data['scientists_pages'] = total_pages
-
-        with open('data.json', 'w') as f:
-            json.dump(existing_data, f)
 
         #Generate requests for each page based on the total number of pages
         for page_number in range(1, total_pages + 1):
@@ -204,10 +187,11 @@ class SggwSpider(scrapy.Spider):
             research_area=response.css('div.researchFieldsPanel ul.ul-element-wcag li span::text').getall()
             scientist['research_area']=research_area or None
 
-            if research_area and academic_title:
+            if scientist['research_area'] and academic_title:
                 yield scientist
 
-        except Exception:
+        except Exception as e:
+            self.logger.error(f'Error in parse_scientist, {e} {response.url}')
             yield scrapy.Request(response.url, callback=self.parse_scientist, dont_filter=True,
                 meta=dict(
                 playwright=True,
@@ -215,21 +199,13 @@ class SggwSpider(scrapy.Spider):
                 errback=self.errback
             ))
         finally:
-            
-            await asyncio.sleep(0.2)
+            #await asyncio.sleep(0.2)
             await page.close()
 
         
     async def parse_publication_page(self, response):
         page = response.meta['playwright_page']
         total_pages = int(response.css('span.entitiesDataListTotalPages::text').get().replace(',', ''))
-
-        pages_per_spider=total_pages//6
-        data = {'publications_pages': [i for i in range(1, total_pages, pages_per_spider)]}
-        data['publications_pages'].append(total_pages)
-        
-        with open('data.json', 'w') as f:
-            json.dump(data, f)
         
         await page.close()
         

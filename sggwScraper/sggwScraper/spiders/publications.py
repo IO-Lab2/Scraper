@@ -18,7 +18,8 @@ class PublicationsSpider(scrapy.Spider):
 
     custom_settings = {
         'PLAYWRIGHT_ABORT_REQUEST': should_abort_request,
-
+        'PLAYWRIGHT_MAX_PAGES_PER_CONTEXT': 5,
+        'CONCURRENT_REQUESTS':10,
     }
 
     bw_url='https://bw.sggw.edu.pl'
@@ -31,26 +32,24 @@ class PublicationsSpider(scrapy.Spider):
         
     async def parse_pages(self, response):
         page=response.meta['playwright_page']
-
         await page.goto('https://bw.sggw.edu.pl/globalResultList.seam?r=publication&tab=PUBLICATION&lang=en')
-        await page.content()
-
+        await page.wait_for_selector('span.entitiesDataListTotalPages', state='visible')
+        #total_pages=int(response.css('span.entitiesDataListTotalPages::text').get().replace(',', ''))
         total_pages = await page.evaluate("parseInt(document.querySelector('span.entitiesDataListTotalPages').innerText.replace(',', ''))")
         
         #Generate requests for each page based on the total number of pages
         for page_number in range(1, total_pages+1):
             page_url = f'https://bw.sggw.edu.pl/globalResultList.seam?r=publication&tab=PUBLICATION&lang=en&p=bst&pn={page_number}'
-            
+
             yield scrapy.Request(url=page_url,
                 callback=self.parse_publications_links,
                 meta=dict(
                     playwright=True, 
                     playwright_include_page=True,
                     playwright_context="pages",
-                    publication_delay=True,
                     errback=self.errback
                 ))
-            await asyncio.sleep(1)
+            #await asyncio.sleep(1)
 
         await page.close()
 
@@ -58,14 +57,16 @@ class PublicationsSpider(scrapy.Spider):
         try:
             page = response.meta['playwright_page']
             await page.wait_for_selector('div.entity-row-heading-wrapper h5 a', state='visible')
-            publications_urls=response.css('div.entity-row-heading-wrapper>h5>a::attr(href)').getall()
-
+            publications_urls = await page.evaluate('''() => {
+                return Array.from(document.querySelectorAll('div.entity-row-heading-wrapper h5 a')).map(el => el.href);
+                                                    }''')
+            
             for pub in publications_urls:
-                yield scrapy.Request(self.bw_url+pub, callback=self.parse_publication)
+                yield scrapy.Request(pub, callback=self.parse_publication,)
             await page.close()
 
         except Exception as e:
-            print(f'Error in parse_publications_links, {e} {response.url}')
+            self.logger.error(f'Error in parse_publications_links, {e} {response.url}')
             yield scrapy.Request(response.url, callback=self.parse_publications_links, 
                     dont_filter=True,
                     meta=dict(
@@ -78,7 +79,6 @@ class PublicationsSpider(scrapy.Spider):
     def parse_publication(self, response):
         
         try:
-            
             authors_selector = response.css('div.authorListElement>a::attr(href)').getall() or None
             if authors_selector:
                 authors_selector=[self.bw_url+link for link in authors_selector]
@@ -88,15 +88,20 @@ class PublicationsSpider(scrapy.Spider):
             publication['title']=response.css('div.publicationShortInfo>h2::text').get() or None
 
 
-            #journal=response.xpath('//dl[contains(@class, "table2ColsContainer")]//dt[span[contains(text(), "Journal")]]/following-sibling::dd[1]//a/text()').get()
+            journal=response.xpath('//dl[contains(@class, "table2ColsContainer")]//dt[span[contains(text(), "Journal series")]]/following-sibling::dd[1]//a/text()').get()
             #journal2=response.xpath('//dl[contains(@class, "table2ColsContainer")]//dt[span[contains(text(), "Journal")]]/following-sibling::dd[1]//div/text()').get()
             #journal3=response.xpath('//dl[contains(@class, "table2ColsContainer")]//dt[span[contains(text(), "Journal")]]/following-sibling::dd[1]/text()').get()
+
+            #jour=[journal, journal2, journal3]
+            #journals=[j for j in jour if j and j.strip()!=''] 
+            publication['journal']=journal or None
+
             publisher=response.xpath('//dl[contains(@class, "table2ColsContainer")]//dt[span[contains(text(), "Publisher")]]/following-sibling::dd[1]//a/span/span/text()').get()
             publisher2=response.xpath('//dl[contains(@class, "table2ColsContainer")]//dt[span[contains(text(), "Publisher")]]/following-sibling::dd[1]//div/text()').get()
             publisher3=response.xpath('//dl[contains(@class, "table2ColsContainer")]//dt[span[contains(text(), "Publisher")]]/following-sibling::dd[1]/text()').get()
 
-            pub=[publisher, publisher2, publisher3]
-            publishers=[j for j in pub if j and j.strip()!='']   
+            publishers=[publisher, publisher2, publisher3]
+            publishers=[j for j in publishers if j and j.strip()!='']   
             publication['publisher']=publishers[0] if publishers else None
             
             publication_date= response.xpath('//dl[contains(@class, "table2ColsContainer")]//dt[span[contains(text(), "Year of creation")]]/following-sibling::dd[1]/text()').get()
@@ -105,21 +110,36 @@ class PublicationsSpider(scrapy.Spider):
             publication_date_div2= response.xpath('//dl[contains(@class, "table2ColsContainer")]//dt[span[contains(text(), "Issue year")]]/following-sibling::dd[1]/div/text()').get()
             
             pub_dates=[publication_date, publication_date2, publication_date_div, publication_date_div2]
-            valid_dates=[date for date in pub_dates if date and date.strip()!='0' and date.strip()!='']
-            publication['publication_date'] = valid_dates[0] if valid_dates else None
+            pub_dates=[date for date in pub_dates if date and date.strip()!='0' and date.strip()!='']
+            publication['publication_date'] = pub_dates[0] if pub_dates else None
             
             publication['authors']=authors_selector
 
-            vol=response.xpath('//dl[contains(@class, "table2ColsContainer")]//dt[span[contains(text(), "Vol")]]/following-sibling::dd[1]/div/text()').get()
+            #need to add the rest of the fields
+            vol=response.xpath('//dl[contains(@class, "table2ColsContainer")]//dt[span[contains(text(), "Vol")]]/following-sibling::dd[1]/text()').get()
+            vol_div=response.xpath('//dl[contains(@class, "table2ColsContainer")]//dt[span[contains(text(), "Vol")]]/following-sibling::dd[1]/div/text()').get()
             edition=response.xpath('//dl[contains(@class, "table2ColsContainer")]//dt[span[contains(text(), "Edition")]]/following-sibling::dd[1]/text()').get()
-            parts=[vol, edition]
+            edition_div=response.xpath('//dl[contains(@class, "table2ColsContainer")]//dt[span[contains(text(), "Edition")]]/following-sibling::dd[1]/div/text()').get()
+
+            parts=[vol_div, edition]
+            
+            #parts=[p for p in parts if p and p.strip()!='']
             publication['vol']= parts[0] if parts else None
 
-            if authors_selector and publication['title']:
-                yield publication
+
+            ministerial_score=response.xpath('//dl[contains(@class, "table2ColsContainer")]//dt[span[contains(text(), "Score (nominal)")]]/following-sibling::dd[1]/text()').get()
+            ministerial_score_div=response.xpath('//dl[contains(@class, "table2ColsContainer")]//dt[span[contains(text(), "Score (nominal)")]]/following-sibling::dd[1]/div/text()').get()
+
+            m_scores=[ministerial_score, ministerial_score_div]
+            m_scores=[s for s in m_scores if s and s.strip()!='']
+            publication['ministerial_score']=m_scores[0] if m_scores else None
+
+            
         except Exception as e:
-            self.logger.error(f"Failed to process {response.url}: {str(e)}")
-            print(f'Error in parsing publication, {e} {response.url}')
+            self.logger.error(f"Error in parsing publication {response.url}: {str(e)}")
+        finally:
+            if publication['authors'] and publication['title']:
+                yield publication
         
             
     async def errback(self, failure):

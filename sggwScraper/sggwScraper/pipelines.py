@@ -15,7 +15,7 @@ from sggwScraper.items import ScientistItem, publicationItem, organizationItem
 
 class SggwscraperPipeline:
     university='Warsaw University of Life Sciences - SGGW'
-
+    @staticmethod
     def get_author_id_from_url(url):
                 result=url.split('WULS')[1].split('?')
                 return "WULS"+result[0] 
@@ -82,9 +82,6 @@ class SggwscraperPipeline:
         elif isinstance(item, publicationItem):
             field_names=adapter.field_names()
             
-            
-            
-            
             authors=adapter.get('authors')
             adapter['authors']=[self.get_author_id_from_url(link) for link in authors]
             
@@ -96,6 +93,9 @@ class SggwscraperPipeline:
                 adapter['publication_date']=pub_date+'-01-01'
 
             adapter['title']+=', vol: '+adapter.get('vol') if adapter.get('vol') else ''
+
+            if adapter['journal']:
+                adapter['journal']=adapter['journal'].split(', ISSN')[0]
 
             
 
@@ -161,7 +161,7 @@ class SaveToDataBase:
                 
                 return self.cursor.fetchone()[0]
                                      
-            def update_or_create_scientist():
+            def update_or_create_scientist():   
                 wuls=SggwscraperPipeline.get_author_id_from_url(adapter['profile_url'])
                 self.cursor.execute("""
                     SELECT
@@ -256,7 +256,7 @@ class SaveToDataBase:
                     org_id=self.cursor.fetchone()[0]
 
                     self.cursor.execute("""
-                                SELECT organization_id 
+                                SELECT organization_id, so.id 
                                 FROM scientist_organization so 
                                 INNER JOIN organizations o ON so.organization_id = o.id
                                 WHERE scientist_id = %s AND type=%s;""", (scientist_id, key))
@@ -272,11 +272,11 @@ class SaveToDataBase:
                                 SET
                                     organization_id = %s,
                                     updated_at = CURRENT_TIMESTAMP
-                                WHERE scientist_id = %s;
+                                WHERE id = %s;
                                 """,
                                 (
                                     org_id,
-                                    scientist_id
+                                    scientist_in_org[1]
                                 ))
                     else:
                         self.cursor.execute(""" 
@@ -327,7 +327,7 @@ class SaveToDataBase:
                                 ra_id
                             ))
  
-            def update_or_create_research_area_relationship(scientist_id):
+            def get_or_create_research_area_relationship(scientist_id):
                 scraped_ra_ids=[]
                 for research_area in adapter['research_area']:
                     self.cursor.execute(f"SELECT id FROM research_areas WHERE name like '{research_area}';")
@@ -356,35 +356,46 @@ class SaveToDataBase:
             update_or_create_organization_relationship(scientist_id)
 
             #scientist_research_areas table
-            update_or_create_research_area_relationship(scientist_id)
+            get_or_create_research_area_relationship(scientist_id)
             
             
 
         elif isinstance(item, publicationItem):
 
-            def add_publication(title, publisher, publication_date):
+            def add_publication(title, publisher, publication_date, journal, ministerial_score):
                 self.cursor.execute("""
                     INSERT INTO 
                     publications 
-                    (title, publisher, publication_date, journal_impact_factor) 
-                    VALUES (%s, %s, %s, %s) RETURNING id;""", 
-                    (title, publisher, publication_date, 0))
+                    (title, publisher, publication_date, journal_impact_factor, journal, ministerial_score) 
+                    VALUES (%s, %s, %s, 0, %s, %s) RETURNING id;""", 
+                    (title, publisher, publication_date, journal, ministerial_score))
                 return self.cursor.fetchone()[0]
 
-            def get_or_create_publication(title, publisher, publication_date):
-                if publisher is None and publication_date and title:
-                    self.cursor.execute("""SELECT id FROM publications WHERE title like %s AND publisher is NULL AND publication_date = %s;""", (title, publication_date))
-                elif publication_date is None and publisher and title:
-                    self.cursor.execute("""SELECT id FROM publications WHERE title like %s AND publisher like %s AND publication_date is NULL;""", (title, publisher))
-                elif publisher is None and publication_date is None and title:
-                    self.cursor.execute("""SELECT id FROM publications WHERE title like %s AND publisher is NULL AND publication_date is NULL;""", (title,))
-                else:
-                    self.cursor.execute("""SELECT id FROM publications WHERE title like %s AND publisher like %s AND publication_date = %s;""", (title, publisher, publication_date))
+            def get_or_create_publication(title, publisher, publication_date, journal, ministerial_score):
+                self.cursor.execute("""
+                        SELECT id, journal, ministerial_score
+                        FROM publications 
+                        WHERE title = %s 
+                        AND (publisher like %s OR publisher IS NULL) 
+                        AND (publication_date = %s OR publication_date IS NULL)
+                        ;""", (title, publisher, publication_date))
+                
                 result=self.cursor.fetchone()
                 if result:
+                    #update publication
+                    if result[1:3]!=(journal, ministerial_score,):
+                        self.cursor.execute("""
+                            UPDATE publications
+                            SET
+                                journal = %s,
+                                ministerial_score = %s,
+                                updated_at = CURRENT_TIMESTAMP
+                            WHERE id = %s;
+                            """, (journal, ministerial_score, result[0]))
+
                     return result[0]
                 else:
-                    return add_publication(title, publisher, publication_date)
+                    return add_publication(title, publisher, publication_date, journal, ministerial_score)
 
             def add_author_to_publications(scientist_id, publication_id):
                 self.cursor.execute("""
@@ -413,9 +424,8 @@ class SaveToDataBase:
                     result=self.cursor.fetchone()
                     if result:
                         scientist_id=result[0]
-                        publication_id=get_or_create_publication(adapter['title'], adapter['publisher'], adapter['publication_date'])
+                        publication_id=get_or_create_publication(adapter['title'], adapter['publisher'], adapter['publication_date'], adapter['journal'], adapter['ministerial_score'])
                         get_or_create_author_publications(scientist_id, publication_id)
-            self.conn.commit()
                 
             
         elif isinstance(item, organizationItem):
@@ -491,6 +501,6 @@ class SaveToDataBase:
             else:
                 get_or_create_relationship(institute_id, None)
             
-
+        self.conn.commit()
         return item
     

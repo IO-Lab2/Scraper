@@ -17,7 +17,7 @@ NEWSPIDER_MODULE = "sggwScraper.spiders"
 #PLAYWRIGHT_PROCESS_REQUEST_HEADERS=None
 #PLAYWRIGHT_MAX_CONTEXTS = 20
 PLAYWRIGHT_LAUNCH_OPTIONS={
-    "headless": False, 
+    "headless": True, 
     "args": [
         "--disable-gpu",
         "--disable-dev-shm-usage",
@@ -99,8 +99,6 @@ CONCURRENT_REQUESTS =32
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 DOWNLOADER_MIDDLEWARES = {
     "sggwScraper.middlewares.SggwscraperDownloaderMiddleware": 543,
-    #"sggwScraper.middlewares.PublicationPlaywrightDelayMiddleWare": 544,
-
     #'scrapy_user_agents.middlewares.RandomUserAgentMiddleware': 555,
     #'rotating_proxies.middlewares.RotatingProxyMiddleware': 610,
     #'rotating_proxies.middlewares.BanDetectionMiddleware': 620
@@ -123,7 +121,7 @@ ITEM_PIPELINES = {
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/autothrottle.html
-#AUTOTHROTTLE_ENABLED = True
+AUTOTHROTTLE_ENABLED = True
 # The initial download delay
 #AUTOTHROTTLE_START_DELAY = 5
 # The maximum download delay to be set in case of high latencies
