@@ -18,8 +18,6 @@ class PublicationsSpider(scrapy.Spider):
 
     custom_settings = {
         'PLAYWRIGHT_ABORT_REQUEST': should_abort_request,
-        'PLAYWRIGHT_MAX_PAGES_PER_CONTEXT': 5,
-        'CONCURRENT_REQUESTS':10,
     }
 
     bw_url='https://bw.sggw.edu.pl'
@@ -49,7 +47,6 @@ class PublicationsSpider(scrapy.Spider):
                     playwright_context="pages",
                     errback=self.errback
                 ))
-            #await asyncio.sleep(1)
 
         await page.close()
 

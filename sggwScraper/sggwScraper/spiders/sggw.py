@@ -22,7 +22,13 @@ class SggwSpider(scrapy.Spider):
 
     custom_settings = {
         'PLAYWRIGHT_ABORT_REQUEST': should_abort_request,
-        'AUTOTHROTTLE_ENABLED': True,
+        'AUTOTHROTTLE_START_DELAY': 0.5,
+        'AUTOTHROTTLE_MAX_DELAY': 60,
+        # The average number of requests Scrapy should be sending in parallel to
+        # each remote server
+        'AUTOTHROTTLE_TARGET_CONCURRENCY': 4,
+        # Enable showing throttling stats for every response received:
+        'AUTOTHROTTLE_DEBUG': False
     }
 
     bw_url='https://bw.sggw.edu.pl'
@@ -60,17 +66,6 @@ class SggwSpider(scrapy.Spider):
                 ],
             errback=self.errback
         ))
-
-        #redirect to Publications category
-        yield scrapy.Request(categories['Publications'], callback=self.parse_publication_page,
-        meta=dict(
-            playwright=True,
-            playwright_include_page=True,
-            playwright_page_methods =[
-                PageMethod('wait_for_selector', 'span.entitiesDataListTotalPages', state='visible')
-                ],
-            errback=self.errback
-        ))
         
     async def parse_people_page(self, response):
         page=response.meta['playwright_page']
@@ -93,7 +88,7 @@ class SggwSpider(scrapy.Spider):
             yield organization
 
         
-        total_pages=int(response.css('span.entitiesDataListTotalPages::text').get())
+        total_pages=1#int(response.css('span.entitiesDataListTotalPages::text').get())
 
         #Generate requests for each page based on the total number of pages
         for page_number in range(1, total_pages + 1):
@@ -137,25 +132,26 @@ class SggwSpider(scrapy.Spider):
         try:
             personal_data=response.css('div.authorProfileBasicInfoPanel')
 
-            name_title=personal_data.css('span.authorName::text').getall()
-            scientist['first_name']= name_title[0]
-            scientist['last_name']= name_title[1]
-            academic_title=None
-            if len(name_title)>2:
-                academic_title=name_title[2]
-                scientist['academic_title']= academic_title
+            names=personal_data.css('p.author-profile__name-panel::text').get()
+            
+            if names:
+                names=names.split()
+                scientist['first_name']= names[0]
+                scientist['last_name']= names[1]
+
+            scientist['academic_title']=personal_data.css('p.author-profile__name-panel span:nth-of-type(2)::text').get() or None
             
             
             
             
-            scientist['email']= personal_data.css('p.authorContactInfoEmailContainer>a::text').get() or None
+            scientist['email']= personal_data.css('dd[property="email"] a::text').get() or None
             
 
             scientist['profile_url']= response.url
             scientist['position']=personal_data.css('p.possitionInfo span::text').get() or None
 
-            scientist['h_index_scopus']=response.xpath('//li[@class="hIndexItem"][span[contains(text(), "Scopus")]]//a/text()').get() or 0
-            
+            scientist['h_index_scopus']=response.xpath('//li[@class="hIndexItem"][span[contains(text(), "Scopus")]]/a[@class="indicatorValue"]/text()').get() or 0
+            print(scientist['h_index_scopus'])
             scientist['h_index_wos']=response.xpath('//li[@class="hIndexItem"][span[contains(text(), "WoS")]]//a/text()').get() or 0
             
             pub_count=response.xpath('//li[contains(@class, "li-element-wcag")][span[@class="achievementName" and contains(text(), "Publications")]]//a/text()').get()
@@ -187,7 +183,7 @@ class SggwSpider(scrapy.Spider):
             research_area=response.css('div.researchFieldsPanel ul.ul-element-wcag li span::text').getall()
             scientist['research_area']=research_area or None
 
-            if scientist['research_area'] and academic_title:
+            if scientist['research_area'] and scientist['academic_title']:
                 yield scientist
 
         except Exception as e:
@@ -199,15 +195,8 @@ class SggwSpider(scrapy.Spider):
                 errback=self.errback
             ))
         finally:
-            #await asyncio.sleep(0.2)
             await page.close()
 
-        
-    async def parse_publication_page(self, response):
-        page = response.meta['playwright_page']
-        total_pages = int(response.css('span.entitiesDataListTotalPages::text').get().replace(',', ''))
-        
-        await page.close()
         
     
             
