@@ -1,77 +1,75 @@
 import scrapy
-import logging
-import asyncio
-from scrapy_playwright.page import PageMethod
+from bs4 import BeautifulSoup as bs
+from lxml import etree
 from sggwScraper.items import publicationItem
 
-#logging.getLogger('asyncio').setLevel(logging.CRITICAL)
 
-def should_abort_request(request):
-    return (
-        request.resource_type in ["image", "stylesheet", "font", "media"]
-        or ".jpg" in request.url
-    )
 
 class PublicationsSpider(scrapy.Spider):
     name = "publications"
     allowed_domains = ["bw.sggw.edu.pl"]
 
-    custom_settings = {
-        'PLAYWRIGHT_ABORT_REQUEST': should_abort_request,
-    }
+    headers = {
+            "Accept": "application/xml, text/xml, */*; q=0.01",
+            "Accept-Encoding": "gzip, deflate, br, zstd",
+            "Accept-Language": "en-US,en;q=0.5",
+            "Connection": "keep-alive",
+            "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+            "Faces-Request": "partial/ajax",
+            "Host": "bw.sggw.edu.pl",
+            "Origin": "https://bw.sggw.edu.pl",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+            "X-Requested-With": "XMLHttpRequest"
+        }
+    
+    formdata_pages = {
+            "javax.faces.partial.ajax": "true",
+            "javax.faces.source": "resultTabsOutputPanel",
+            "primefaces.ignoreautoupdate": "true",
+            "javax.faces.partial.execute": "resultTabsOutputPanel",
+            "javax.faces.partial.render": "resultTabsOutputPanel",
+            "resultTabsOutputPanel": "resultTabsOutputPanel",
+            "resultTabsOutputPanel_load": "true",
+        }
 
     bw_url='https://bw.sggw.edu.pl'
 
     def start_requests(self):
         
-        yield scrapy.Request(url=self.bw_url, 
-            callback=self.parse_pages,
-                meta=dict(playwright=True, playwright_include_page=True, playwright_context="pages",))
+        url='https://bw.sggw.edu.pl/globalResultList.seam?r=publication&tab=PUBLICATION&lang=en'
+        yield scrapy.FormRequest(url=url,
+                callback=self.parse_pages, 
+                headers=self.headers,
+                formdata=self.formdata_pages)
         
-    async def parse_pages(self, response):
-        page=response.meta['playwright_page']
-        await page.goto('https://bw.sggw.edu.pl/globalResultList.seam?r=publication&tab=PUBLICATION&lang=en')
-        await page.wait_for_selector('span.entitiesDataListTotalPages', state='visible')
-        #total_pages=int(response.css('span.entitiesDataListTotalPages::text').get().replace(',', ''))
-        total_pages = await page.evaluate("parseInt(document.querySelector('span.entitiesDataListTotalPages').innerText.replace(',', ''))")
+    def parse_pages(self, response):
+        response_bytes = response.body
+        root = etree.fromstring(response_bytes)
+        cdata_content = root.xpath('//update/text()')[0]
+        soup = bs(cdata_content, 'html.parser')
+        total_pages=int(soup.find('span', class_='entitiesDataListTotalPages').text.replace(',', ''))
         
         #Generate requests for each page based on the total number of pages
         for page_number in range(1, total_pages+1):
             page_url = f'https://bw.sggw.edu.pl/globalResultList.seam?r=publication&tab=PUBLICATION&lang=en&p=bst&pn={page_number}'
 
-            yield scrapy.Request(url=page_url,
-                callback=self.parse_publications_links,
-                meta=dict(
-                    playwright=True, 
-                    playwright_include_page=True,
-                    playwright_context="pages",
-                    errback=self.errback
-                ))
+            yield scrapy.FormRequest(url=page_url,
+                callback=self.parse_publications_links, 
+                headers=self.headers,
+                formdata=self.formdata_pages)
 
-        await page.close()
 
-    async def parse_publications_links(self, response):
-        try:
-            page = response.meta['playwright_page']
-            await page.wait_for_selector('div.entity-row-heading-wrapper h5 a', state='visible')
-            publications_urls = await page.evaluate('''() => {
-                return Array.from(document.querySelectorAll('div.entity-row-heading-wrapper h5 a')).map(el => el.href);
-                                                    }''')
+    def parse_publications_links(self, response):
+        response_bytes = response.body
+        root = etree.fromstring(response_bytes)
+        cdata_content = root.xpath('//update/text()')[0]
+        soup = bs(cdata_content, 'html.parser')
+        links_selectors = soup.find_all('a', class_='infoLink')
+        if links_selectors:
+            links=[link.get('href') for link in links_selectors]
             
-            for pub in publications_urls:
-                yield scrapy.Request(pub, callback=self.parse_publication,)
-            await page.close()
-
-        except Exception as e:
-            self.logger.error(f'Error in parse_publications_links, {e} {response.url}')
-            yield scrapy.Request(response.url, callback=self.parse_publications_links, 
-                    dont_filter=True,
-                    meta=dict(
-                        playwright=True, 
-                        playwright_include_page=True,
-                        playwright_context="pages",
-                        errback=self.errback
-                    ))
+        for link in links:
+            yield scrapy.Request(self.bw_url+link, callback=self.parse_publication)
     
     def parse_publication(self, response):
         
@@ -112,7 +110,6 @@ class PublicationsSpider(scrapy.Spider):
             
             publication['authors']=authors_selector
 
-            #need to add the rest of the fields
             vol=response.xpath('//dl[contains(@class, "table2ColsContainer")]//dt[span[contains(text(), "Vol")]]/following-sibling::dd[1]/text()').get()
             vol_div=response.xpath('//dl[contains(@class, "table2ColsContainer")]//dt[span[contains(text(), "Vol")]]/following-sibling::dd[1]/div/text()').get()
 
@@ -136,10 +133,3 @@ class PublicationsSpider(scrapy.Spider):
             if publication['authors'] and publication['title']:
                 yield publication
         
-            
-    async def errback(self, failure):
-        
-        self.logger.error(f"Request failed: {repr(failure)}")
-        page = failure.request.meta.get('playwright_page')
-        if page:
-            await page.close()
