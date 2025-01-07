@@ -51,7 +51,6 @@ class SggwSpider(scrapy.Spider):
             playwright=True,
             playwright_include_page=True,
             playwright_page_methods =[
-                PageMethod('wait_for_selector', 'a.authorNameLink'),
                 PageMethod('wait_for_selector', 'div#searchResultsFiltersInnerPanel' ),
                 PageMethod('wait_for_selector', 'div#afftreemain div#groupingPanel ul.ui-tree-container'),
                 PageMethod("evaluate", """
@@ -228,19 +227,21 @@ class SggwSpider(scrapy.Spider):
             scientist['profile_url'] = response.meta['profile_url']
             scientist['position'] = response.meta['position']
 
-            h_index_scopus = soup.find(id="j_id_22_1_1_8_7_3_5b_2_1:1:j_id_22_1_1_8_7_3_5b_2_6")
-            scientist['h_index_scopus']= h_index_scopus.find_all(string=True, recursive=False)[0] if h_index_scopus else 0
 
             h_index_wos = soup.find(id="j_id_22_1_1_8_7_3_5b_2_1:2:j_id_22_1_1_8_7_3_5b_2_6")
             scientist['h_index_wos']= h_index_wos.find_all(string=True, recursive=False)[0] if h_index_wos else 0
+
+            h_index_scopus = soup.find(id="j_id_22_1_1_8_7_3_5b_2_1:1:j_id_22_1_1_8_7_3_5b_2_6")
+            scientist['h_index_scopus']= h_index_scopus.find_all(string=True, recursive=False)[0] if h_index_scopus else 0
 
             publication_count = soup.find(id="j_id_22_1_1_8_7_3_56_9:0:j_id_22_1_1_8_7_3_56_o_1")
             scientist['publication_count']= publication_count.find_all(string=True, recursive=False)[0] if publication_count else 0
 
             ministerial_score = soup.find(id="j_id_22_1_1_8_7_3_5b_a_2")
             if ministerial_score:
-                scientist['ministerial_score']= ministerial_score.text.replace('\xa0','') if ministerial_score and ('—' not in ministerial_score) else 0
-
+                scientist['ministerial_score']= ministerial_score.text.replace('\xa0','') if ministerial_score and 'Not' not in ministerial_score.text else 0
+            else:
+                scientist['ministerial_score']=0
 
             scientist['organization'] = response.meta['organization']
             scientist['research_area'] = response.meta['research_area']
@@ -249,7 +250,6 @@ class SggwSpider(scrapy.Spider):
             self.logger.error(f'Error in bibliometric, {e} {response.url}')
         finally:
             yield scientist
-
 
         
     

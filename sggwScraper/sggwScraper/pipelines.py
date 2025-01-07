@@ -136,7 +136,16 @@ class SaveToDataBase:
         if isinstance(item, ScientistItem):
             
             
-            scientistFields=tuple(ItemAdapter(item).values())
+            scientistFields=(adapter['first_name'], 
+                             adapter['last_name'], 
+                             adapter['academic_title'], 
+                             adapter['email'], 
+                             adapter['profile_url'], 
+                             adapter['position'], 
+                             adapter['h_index_wos'], 
+                             adapter['h_index_scopus'], 
+                             adapter['publication_count'], 
+                             adapter['ministerial_score'])
 
             def add_scientist():
                 self.cursor.execute(""" 
@@ -343,8 +352,7 @@ class SaveToDataBase:
                 for ra_id in scraped_ra_ids:
                     if ra_id not in selected_ra_ids:
                         add_reserach_area_relationship(scientist_id, ra_id)
-                        
-                            
+                                       
 
             #scientist table
             scientist_id=update_or_create_scientist()
