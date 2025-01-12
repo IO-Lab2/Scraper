@@ -24,6 +24,7 @@ This project is designed to scrape journal publications data from punktoza.pl us
     ├── journal_names.txt                 # Add names of journals to filter out (only if using .txt mode)
     ├── .env                              # Store your database connection data
     ├── .gitignore
+    ├── scrapy.cfg                        # Configure spider launch options
     └── requirements.txt                  # Install before using
 
 ## Prerequisites
