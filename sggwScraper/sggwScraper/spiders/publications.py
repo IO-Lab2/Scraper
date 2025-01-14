@@ -67,9 +67,11 @@ class PublicationsSpider(scrapy.Spider):
         links_selectors = soup.find_all('a', class_='infoLink')
         if links_selectors:
             links=[link.get('href') for link in links_selectors]
-            
+        
+        error_500_ids=['WULSddfaf43b9a3549b381e05878ae0aa133', 'WULS92493e4814244bb99e805840ddfeea1e', 'WULS81ebf4da18d14f2cb8797e63f2708c90']
         for link in links:
-            yield scrapy.Request(self.bw_url+link, callback=self.parse_publication)
+            if not any(error_id in link for error_id in error_500_ids): 
+                yield scrapy.Request(self.bw_url+link, callback=self.parse_publication)
     
     def parse_publication(self, response):
         
